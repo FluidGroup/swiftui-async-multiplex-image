@@ -22,7 +22,7 @@ public enum AsyncMultiplexImagePhase {
 
 public struct AsyncMultiplexImage<Content, Downloader: AsyncMultiplexImageDownloader>: View {
   
-  struct Candidate: Equatable {
+  struct Candidate: Hashable {
     
     let index: Int
     let url: URL
@@ -79,22 +79,42 @@ public struct AsyncMultiplexImage<Content, Downloader: AsyncMultiplexImageDownlo
       }
     }
     .onAppear {
-      if let url = urls.first {
+      
+      if let candidate = candidates.first {
         
-        currentTask = Task {
+        let task = Task {
           do {
             // TODO: consider re-entrancy
-            let image = try await downloader.download(request: .init(url: url))
+            let image = try await downloader.download(request: .init(url: candidate.url))
             currentImage = image
           } catch {
             
           }
         }
+        
+        currentTasks.append((candidate, task))
+        
       }
+      
     }
     .onDisappear {
-
+      cancelAllTasks()
     }
+    .id(candidates)
+  }
+  
+  private func complete(candidate: Candidate) {
+    
+    currentTasks.removeAll { $0.0  == candidate }
+    
+  }
+  
+  private func cancelAllTasks() {
+    
+    for (_, task) in currentTasks {
+      task.cancel()
+    }
+    
   }
 }
 
