@@ -3,13 +3,13 @@ import SwiftUI
 
 @MainActor
 public final class DownloadManager {
-
+  
   public static let shared: DownloadManager = .init()
-      
+  
 }
 
 public protocol AsyncMultiplexImageDownloader {
-    
+  
   func download(request: URLRequest) async throws -> Image
 }
 
@@ -20,22 +20,22 @@ public enum AsyncMultiplexImagePhase {
   case failure(Error)
 }
 
-public struct AsyncMultiplexImage<Content, Downloader: AsyncMultiplexImageDownloader>: View {
+struct Candidate: Hashable {
   
-  struct Candidate: Hashable {
-    
-    let index: Int
-    let url: URL
-    
-  }
+  let index: Int
+  let url: URL
+  
+}
+
+public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
   @State private var currentImage: Image?
-  @State private var currentTasks: [(Candidate, Task<Void, Never>)] = []
-    
+  @State private var task: Task<Void, Never>?
+  
   private let downloader: Downloader
   private let candidates: [Candidate]
   private let content: (AsyncMultiplexImagePhase) -> Content
-    
+  
   /// Primitive initializer
   public init(
     urls: [URL],
@@ -72,49 +72,150 @@ public struct AsyncMultiplexImage<Content, Downloader: AsyncMultiplexImageDownlo
   
   public var body: some View {
     Group {
-      if let currentImage {
-        currentImage
-      } else {
-        Text("Loading")
-      }
+      content({
+        if let currentImage {
+          return .success(currentImage)
+        }
+        return .empty
+      }())
     }
     .onAppear {
+      task?.cancel()
       
-      if let candidate = candidates.first {
-        
-        let task = Task {
-          do {
-            // TODO: consider re-entrancy
-            let image = try await downloader.download(request: .init(url: candidate.url))
+      let currentTask = Task {
+        let container = ResultContainer()
+        let stream = await container.make(candidates: candidates, on: downloader)
+       
+        do {
+          for try await image in stream {
             currentImage = image
+          }
+        } catch {
+          
+        }
+      }
+      
+      task = currentTask
+    }
+    .onDisappear {
+      task?.cancel()
+    }
+    .id(candidates)
+  }
+  
+}
+
+actor ResultContainer {
+  
+  var lastCandidate: Candidate? = nil
+  
+  var idealImageTask: Task<Void, Never>?
+  var progressImagesTask: Task<Void, Never>?
+  
+  func setLastCandidate(_ candidate: Candidate) {
+    self.lastCandidate = candidate
+  }
+  
+  func perform(_ run: @Sendable (ResultContainer) -> Void) {
+    run(self)
+  }
+  
+  deinit {
+    idealImageTask?.cancel()
+    progressImagesTask?.cancel()
+  }
+  
+  func make<Downloader: AsyncMultiplexImageDownloader>(
+    candidates: [Candidate],
+    on downloader: Downloader
+  ) -> AsyncThrowingStream<Image, Error> {
+    
+    return .init { continuation in
+      
+      continuation.onTermination = { [weak self] termination in
+        
+        guard let self else { return }
+        
+        switch termination {
+        case .finished, .cancelled:
+          Task {
+            await self.idealImageTask?.cancel()
+            await self.progressImagesTask?.cancel()
+          }
+        @unknown default:
+          break
+        }
+        
+      }
+      
+      guard let idealCandidate = candidates.first else {
+        continuation.finish()
+        return
+      }
+      
+      let idealImage = Task {
+        
+        do {
+          let result = try await downloader.download(request: .init(url: idealCandidate.url))
+          
+          progressImagesTask?.cancel()
+          
+          self.setLastCandidate(idealCandidate)
+          continuation.yield(result)
+        } catch {
+          continuation.yield(with: .failure(error))
+        }
+        
+        continuation.finish()
+        
+      }
+      
+      idealImageTask = idealImage
+      
+      let progressCandidates = candidates.dropFirst(1)
+      
+      guard progressCandidates.isEmpty == false else {
+        return
+      }
+      
+      let progressImages = Task {
+        
+        // download images sequentially from lower image
+        for candidate in progressCandidates.reversed() {
+          do {
+            
+            let result = try await downloader.download(request: .init(url: candidate.url))
+            
+            guard Task.isCancelled == false else {
+              return
+            }
+            
+            if let lastCandidate, lastCandidate.index < candidate.index {
+              continuation.finish()
+              return
+            }
+            
+            self.setLastCandidate(idealCandidate)
+            continuation.yield(result)
           } catch {
             
           }
         }
         
-        currentTasks.append((candidate, task))
-        
       }
       
+      progressImagesTask = progressImages
+      
     }
-    .onDisappear {
-      cancelAllTasks()
-    }
-    .id(candidates)
-  }
-  
-  private func complete(candidate: Candidate) {
-    
-    currentTasks.removeAll { $0.0  == candidate }
-    
-  }
-  
-  private func cancelAllTasks() {
-    
-    for (_, task) in currentTasks {
-      task.cancel()
-    }
-    
   }
 }
 
+func race<Downloader: AsyncMultiplexImageDownloader>(
+  candidates: [Candidate],
+  on downloader: Downloader
+) async -> AsyncThrowingStream<Image, Error> {
+  
+  let container = ResultContainer()
+  return await container.make(candidates: candidates, on: downloader)
+  
+}

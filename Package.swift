@@ -40,7 +40,7 @@ let package = Package(
     ),
     .target(
       name: "AsyncMultiplexImageDemo",
-      dependencies: ["AsyncMultiplexImage", "AsyncMultiplexImage-Nuke"]
+      dependencies: ["AsyncMultiplexImage", "AsyncMultiplexImage-Nuke", "Nuke"]
     ),
     .testTarget(
       name: "AsyncMultiplexImageTests",
