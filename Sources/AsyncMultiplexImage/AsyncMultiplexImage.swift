@@ -112,14 +112,6 @@ actor ResultContainer {
   var idealImageTask: Task<Void, Never>?
   var progressImagesTask: Task<Void, Never>?
   
-  func setLastCandidate(_ candidate: Candidate) {
-    self.lastCandidate = candidate
-  }
-  
-  func perform(_ run: @Sendable (ResultContainer) -> Void) {
-    run(self)
-  }
-  
   deinit {
     idealImageTask?.cancel()
     progressImagesTask?.cancel()
@@ -160,7 +152,7 @@ actor ResultContainer {
           
           progressImagesTask?.cancel()
           
-          self.setLastCandidate(idealCandidate)
+          lastCandidate = idealCandidate
           continuation.yield(result)
         } catch {
           continuation.yield(with: .failure(error))
@@ -195,7 +187,7 @@ actor ResultContainer {
               return
             }
             
-            self.setLastCandidate(idealCandidate)
+            lastCandidate = idealCandidate
             continuation.yield(result)
           } catch {
             
