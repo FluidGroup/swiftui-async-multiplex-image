@@ -116,7 +116,7 @@ actor ResultContainer {
     idealImageTask?.cancel()
     progressImagesTask?.cancel()
   }
-  
+    
   func make<Downloader: AsyncMultiplexImageDownloader>(
     candidates: [Candidate],
     on downloader: Downloader
@@ -169,7 +169,7 @@ actor ResultContainer {
       guard progressCandidates.isEmpty == false else {
         return
       }
-      
+
       let progressImages = Task {
         
         // download images sequentially from lower image
