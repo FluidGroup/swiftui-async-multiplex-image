@@ -42,10 +42,13 @@ struct _SlowDownloader: AsyncMultiplexImageDownloader {
 }
 
 struct ContentView: View {
+  
+  @State private var basePhotoURLString: String = "https://images.unsplash.com/photo-1492446845049-9c50cc313f00"
+  
   var body: some View {
     VStack {
       AsyncMultiplexImage(
-        urls: buildURLs(),
+        urls: buildURLs(basePhotoURLString),
         downloader: _SlowDownloader(pipeline: .shared)
       ) { phase in
         switch phase {
@@ -61,6 +64,18 @@ struct ContentView: View {
           Text("Error")
         }
       }
+      
+      HStack {
+        Button("1") {
+          basePhotoURLString = "https://images.unsplash.com/photo-1660668377331-da480e5339a0"
+        }
+        Button("2") {
+          basePhotoURLString = "https://images.unsplash.com/photo-1658214764191-b002b517e9e5"
+        }
+        Button("3") {
+          basePhotoURLString = "https://images.unsplash.com/photo-1587126396803-be14d33e49cf"
+        }
+      }
     }
     .padding()
   }
@@ -72,10 +87,8 @@ struct ContentView_Previews: PreviewProvider {
   }
 }
 
-func buildURLs() -> [URL] {
-  
-  let baseURLString = "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
-  
+func buildURLs(_ baseURLString: String) -> [URL] {
+    
   var components = URLComponents(string: baseURLString)!
   
   return [
@@ -91,26 +104,4 @@ func buildURLs() -> [URL] {
     
   }
   
-}
-
-struct AsyncMultiplexImage_Previews: PreviewProvider {
-  static var previews: some View {
-    AsyncMultiplexImage(
-      urls: buildURLs(),
-      downloader: _SlowDownloader(pipeline: .shared)
-    ) { phase in
-      switch phase {
-      case .empty:
-        Text("Loading")
-      case .progress(let image):
-        image
-      case .success(let image):
-        image
-          .resizable()
-          .scaledToFit()
-      case .failure(let error):
-        Text("Error")
-      }
-    }
-  }
 }

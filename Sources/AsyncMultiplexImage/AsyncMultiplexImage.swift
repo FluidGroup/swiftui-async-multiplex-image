@@ -26,6 +26,7 @@ extension OSLog {
   }
   
   static let `default`: OSLog = makeOSLogInDebug { OSLog.init(subsystem: "app", category: "default") }
+  static let view: OSLog = makeOSLogInDebug { OSLog.init(subsystem: "app", category: "View") }
 }
 
 @MainActor
@@ -56,12 +57,8 @@ public struct AsyncMultiplexImageCandidate: Hashable {
 
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
-  @State private var currentImage: Image?
-  @State private var task: Task<Void, Never>?
-  
-  private let downloader: Downloader
   private let candidates: [AsyncMultiplexImageCandidate]
-  private let content: (AsyncMultiplexImagePhase) -> Content
+  private let content: _AsyncMultiplexImage<Content, Downloader>
   
   /// Primitive initializer
   public init(
@@ -69,11 +66,17 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
     downloader: Downloader,
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
+    
     self.candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
-    self.downloader = downloader
-    self.content = content
+    
+    self.content = .init(
+      candidates: candidates,
+      downloader: downloader,
+      content: content
+    )
+    
   }
-  
+    
   // TODO: tmp
   public init(
     urls: [URL],
@@ -98,6 +101,34 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   }
   
   public var body: some View {
+    content
+      .id(candidates) // to make distinct views for each image-set.
+  }
+  
+}
+
+struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
+  
+  @State private var currentImage: Image?
+  @State private var task: Task<Void, Never>?
+  
+  private let downloader: Downloader
+  private let candidates: [AsyncMultiplexImageCandidate]
+  private let content: (AsyncMultiplexImagePhase) -> Content
+  
+  /// Primitive initializer
+  init(
+    candidates: [AsyncMultiplexImageCandidate],
+    downloader: Downloader,
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+  ) {
+    self.candidates = candidates
+    self.downloader = downloader
+    self.content = content
+  }
+    
+  var body: some View {
+    
     Group {
       content({
         if let currentImage {
@@ -107,9 +138,9 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
       }())
     }
     .onAppear {
-      task?.cancel()
-      
+                  
       let currentTask = Task {
+        // this instance will be alive until finish
         let container = ResultContainer()
         let stream = await container.make(candidates: candidates, on: downloader)
        
@@ -118,7 +149,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
             currentImage = image
           }
         } catch {
-          
+          // FIXME: Error handling
         }
       }
       
@@ -127,7 +158,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
     .onDisappear {
       task?.cancel()
     }
-    .id(candidates)
+    
   }
   
 }
