@@ -27,12 +27,13 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(url: "https://github.com/kean/Nuke.git", from: "11.2.1")
+    .package(url: "https://github.com/kean/Nuke.git", from: "11.2.1"),
+    .package(url: "https://github.com/FluidGroup/swiftui-support.git", from: "0.1.0")
   ],
   targets: [
     .target(
       name: "AsyncMultiplexImage",
-      dependencies: []
+      dependencies: [.product(name: "SwiftUISupport", package: "swiftui-support")]
     ),
     .target(
       name: "AsyncMultiplexImage-Nuke",

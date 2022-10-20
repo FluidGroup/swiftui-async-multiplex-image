@@ -1,15 +1,26 @@
 import Foundation
 import SwiftUI
 import os.log
+import SwiftUISupport
 
 enum Log {
   
-  static func debug(_ log: OSLog, _ object: @autoclosure () -> Any) {
-    os_log(.debug, log: log, "%@", "\(object())")
+  static func debug(
+    file: StaticString = #file,
+    line: UInt = #line,
+    _ log: OSLog,
+    _ object: @autoclosure () -> Any
+  ) {
+    os_log(.default, log: log, "%{public}@\n%{public}@:%{public}@", "\(object())", "\(file)", "\(line.description)")
   }
   
-  static func error(_ log: OSLog, _ object: @autoclosure () -> Any) {
-    os_log(.error, log: log, "%@", "\(object())")
+  static func error(
+    file: StaticString = #file,
+    line: UInt = #line,
+    _ log: OSLog,
+    _ object: @autoclosure () -> Any
+  ) {
+    os_log(.error, log: log, "%{public}@\n%{public}@:%{public}@", "\(object())", "\(file)", "\(line.description)")
   }
   
 }
@@ -25,8 +36,8 @@ extension OSLog {
 #endif
   }
   
-  static let `default`: OSLog = makeOSLogInDebug { OSLog.init(subsystem: "app", category: "default") }
-  static let view: OSLog = makeOSLogInDebug { OSLog.init(subsystem: "app", category: "View") }
+  static let generic: OSLog = makeOSLogInDebug { OSLog.init(subsystem: "app.muukii", category: "default") }
+  static let view: OSLog = makeOSLogInDebug { OSLog.init(subsystem: "app.muukii", category: "View") }
 }
 
 @MainActor
@@ -57,8 +68,24 @@ public struct AsyncMultiplexImageCandidate: Hashable {
 
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
-  private let candidates: [AsyncMultiplexImageCandidate]
-  private let content: _AsyncMultiplexImage<Content, Downloader>
+  private var candidates: [AsyncMultiplexImageCandidate] = []
+  
+  @State private var internalView: _AsyncMultiplexImage<Content, Downloader>?
+  
+  private let urlsProvider: (CGSize) -> [URL]
+  private let downloader: Downloader
+  private let content: (AsyncMultiplexImagePhase) -> Content
+  
+  public init(
+    urlsProvider: @escaping (CGSize) -> [URL],
+    downloader: Downloader,
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+  ) {
+    
+    self.urlsProvider = urlsProvider
+    self.downloader = downloader
+    self.content = content
+  }
   
   /// Primitive initializer
   public init(
@@ -67,14 +94,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
     
-    self.candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
-    
-    self.content = .init(
-      candidates: candidates,
-      downloader: downloader,
-      content: content
-    )
-    
+    self.init(urlsProvider: { _ in urls }, downloader: downloader, content: content)
   }
     
   // TODO: tmp
@@ -101,8 +121,19 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   }
   
   public var body: some View {
-    content
-      .id(candidates) // to make distinct views for each image-set.
+    GeometryReader { proxy in
+      internalView
+        .onChangeWithPrevious(of: proxy.size, emitsInitial: true, perform: { newValue, oldValue in
+          
+          let urls = urlsProvider(newValue)
+          
+          let candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
+          
+          self.internalView = .init(candidates: candidates, downloader: downloader, content: content)
+          Log.debug(.view, newValue)
+        })
+        .id(candidates) // to make distinct views for each image-set.
+    }
   }
   
 }
@@ -180,7 +211,7 @@ actor ResultContainer {
     on downloader: Downloader
   ) -> AsyncThrowingStream<Image, Error> {
     
-    Log.debug(.default, "Load: \(candidates.map { $0.urlRequest })")
+    Log.debug(.`generic`, "Load: \(candidates.map { $0.urlRequest })")
     
     return .init { continuation in
       
@@ -212,7 +243,7 @@ actor ResultContainer {
 
           progressImagesTask?.cancel()
 
-          Log.debug(.default, "Loaded ideal")
+          Log.debug(.`generic`, "Loaded ideal")
 
           lastCandidate = idealCandidate
           continuation.yield(result)
@@ -239,15 +270,15 @@ actor ResultContainer {
           do {
             
             guard Task.isCancelled == false else {
-              Log.debug(.default, "Cancelled progress images")
+              Log.debug(.`generic`, "Cancelled progress images")
               return
             }
             
-            Log.debug(.default, "Load progress image => \(candidate.index)")
+            Log.debug(.`generic`, "Load progress image => \(candidate.index)")
             let result = try await downloader.download(candidate: candidate)
             
             guard Task.isCancelled == false else {
-              Log.debug(.default, "Cancelled progress images")
+              Log.debug(.`generic`, "Cancelled progress images")
               return
             }
             
@@ -261,7 +292,7 @@ actor ResultContainer {
             
             let yieldResult = continuation.yield(result)
             
-            Log.debug(.default, "Loaded progress image => \(candidate.index), \(yieldResult)")
+            Log.debug(.`generic`, "Loaded progress image => \(candidate.index), \(yieldResult)")
           } catch {
             
           }
