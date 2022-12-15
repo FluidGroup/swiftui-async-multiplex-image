@@ -68,7 +68,7 @@ public struct AsyncMultiplexImageCandidate: Hashable {
 
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
-  private var candidates: [AsyncMultiplexImageCandidate] = []
+  @State private var candidates: [AsyncMultiplexImageCandidate] = []
   
   @State private var internalView: _AsyncMultiplexImage<Content, Downloader>?
   
@@ -129,8 +129,8 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
           
           let candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
           
+          self.candidates = candidates
           self.internalView = .init(candidates: candidates, downloader: downloader, content: content)
-          Log.debug(.view, newValue)
         })
         .id(candidates) // to make distinct views for each image-set.
     }
@@ -140,7 +140,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
 
 struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
-  @State private var currentImage: Image?
+  @State private var item: ResultContainer.Item?
   @State private var task: Task<Void, Never>?
   
   private let downloader: Downloader
@@ -160,14 +160,20 @@ struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownlo
     
   var body: some View {
     
-    Group {
+    GeometryReader { proxy in
       content({
-        if let currentImage {
-          return .success(currentImage)
+        switch item {
+        case .none:
+          return .empty
+        case .some(.progress(let image)):
+          return .progress(image)
+        case .some(.final(let image)):
+          return .success(image)
         }
-        return .empty
       }())
+      .frame(width: proxy.size.width, height: proxy.size.height)
     }
+    .clipped()
     .onAppear {
                   
       let currentTask = Task {
@@ -176,8 +182,8 @@ struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownlo
         let stream = await container.make(candidates: candidates, on: downloader)
        
         do {
-          for try await image in stream {
-            currentImage = image
+          for try await item in stream {
+            self.item = item
           }
         } catch {
           // FIXME: Error handling
@@ -196,6 +202,11 @@ struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownlo
 
 actor ResultContainer {
   
+  enum Item {
+    case progress(Image)
+    case final(Image)
+  }
+  
   var lastCandidate: AsyncMultiplexImageCandidate? = nil
   
   var idealImageTask: Task<Void, Never>?
@@ -209,7 +220,7 @@ actor ResultContainer {
   func make<Downloader: AsyncMultiplexImageDownloader>(
     candidates: [AsyncMultiplexImageCandidate],
     on downloader: Downloader
-  ) -> AsyncThrowingStream<Image, Error> {
+  ) -> AsyncThrowingStream<Item, Error> {
     
     Log.debug(.`generic`, "Load: \(candidates.map { $0.urlRequest })")
     
@@ -246,7 +257,7 @@ actor ResultContainer {
           Log.debug(.`generic`, "Loaded ideal")
 
           lastCandidate = idealCandidate
-          continuation.yield(result)
+          continuation.yield(.final(result))
         } catch {
           continuation.yield(with: .failure(error))
         }
@@ -290,7 +301,7 @@ actor ResultContainer {
             
             lastCandidate = idealCandidate
             
-            let yieldResult = continuation.yield(result)
+            let yieldResult = continuation.yield(.progress(result))
             
             Log.debug(.`generic`, "Loaded progress image => \(candidate.index), \(yieldResult)")
           } catch {
