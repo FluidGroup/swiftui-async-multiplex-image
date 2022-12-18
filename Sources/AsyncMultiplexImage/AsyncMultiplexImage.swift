@@ -69,8 +69,8 @@ public struct AsyncMultiplexImageCandidate: Hashable {
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
   @State private var candidates: [AsyncMultiplexImageCandidate] = []
-  
-  @State private var internalView: _AsyncMultiplexImage<Content, Downloader>?
+    
+  @State private var internalView: _internal_AsyncMultiplexImage<Content, Downloader>?
   
   private let urlsProvider: (CGSize) -> [URL]
   private let downloader: Downloader
@@ -138,7 +138,8 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   
 }
 
-struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
+@_spi(Internal)
+public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
   @State private var item: ResultContainer.Item?
   @State private var task: Task<Void, Never>?
@@ -158,7 +159,7 @@ struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownlo
     self.content = content
   }
     
-  var body: some View {
+  public var body: some View {
     
     GeometryReader { proxy in
       content({
