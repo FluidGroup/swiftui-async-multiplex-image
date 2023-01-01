@@ -28,7 +28,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/kean/Nuke.git", from: "11.2.1"),
-    .package(url: "https://github.com/FluidGroup/swiftui-support.git", from: "0.1.0")
+    .package(url: "https://github.com/FluidGroup/swiftui-support.git", from: "0.2.3")
   ],
   targets: [
     .target(
