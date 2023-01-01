@@ -7,22 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4B57105928D0AC7F00AA053C /* AsyncMultiplexImage_DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B57105828D0AC7F00AA053C /* AsyncMultiplexImage_DemoApp.swift */; };
 		4B57105B28D0AC7F00AA053C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B57105A28D0AC7F00AA053C /* ContentView.swift */; };
 		4B57105D28D0AC8000AA053C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B57105C28D0AC8000AA053C /* Assets.xcassets */; };
 		4B57106128D0AC8000AA053C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B57106028D0AC8000AA053C /* Preview Assets.xcassets */; };
 		4B57106A28D0ACA300AA053C /* AsyncMultiplexImage in Frameworks */ = {isa = PBXBuildFile; productRef = 4B57106928D0ACA300AA053C /* AsyncMultiplexImage */; };
 		4B57106C28D0ACA800AA053C /* AsyncMultiplexImage-Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 4B57106B28D0ACA800AA053C /* AsyncMultiplexImage-Nuke */; };
+		4B7E24F9296184E300E53388 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7E24F8296184E300E53388 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		4B57105528D0AC7F00AA053C /* AsyncMultiplexImage-Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AsyncMultiplexImage-Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4B57105828D0AC7F00AA053C /* AsyncMultiplexImage_DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncMultiplexImage_DemoApp.swift; sourceTree = "<group>"; };
 		4B57105A28D0AC7F00AA053C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		4B57105C28D0AC8000AA053C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4B57105E28D0AC8000AA053C /* AsyncMultiplexImage_Demo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AsyncMultiplexImage_Demo.entitlements; sourceTree = "<group>"; };
 		4B57106028D0AC8000AA053C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4B57106728D0AC8C00AA053C /* swiftui-AsyncMultiplexImage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swiftui-AsyncMultiplexImage"; path = ..; sourceTree = "<group>"; };
+		4B7E24F8296184E300E53388 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,11 +59,11 @@
 		4B57105728D0AC7F00AA053C /* AsyncMultiplexImage-Demo */ = {
 			isa = PBXGroup;
 			children = (
-				4B57105828D0AC7F00AA053C /* AsyncMultiplexImage_DemoApp.swift */,
 				4B57105A28D0AC7F00AA053C /* ContentView.swift */,
 				4B57105C28D0AC8000AA053C /* Assets.xcassets */,
 				4B57105E28D0AC8000AA053C /* AsyncMultiplexImage_Demo.entitlements */,
 				4B57105F28D0AC8000AA053C /* Preview Content */,
+				4B7E24F8296184E300E53388 /* AppDelegate.swift */,
 			);
 			path = "AsyncMultiplexImage-Demo";
 			sourceTree = "<group>";
@@ -114,7 +114,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1400;
+				LastSwiftUpdateCheck = 1420;
 				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					4B57105428D0AC7F00AA053C = {
@@ -157,8 +157,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4B7E24F9296184E300E53388 /* AppDelegate.swift in Sources */,
 				4B57105B28D0AC7F00AA053C /* ContentView.swift in Sources */,
-				4B57105928D0AC7F00AA053C /* AsyncMultiplexImage_DemoApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,17 +285,14 @@
 				DEVELOPMENT_ASSET_PATHS = "\"AsyncMultiplexImage-Demo/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
@@ -303,10 +300,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "app.muukii.AsyncMultiplexImage-Demo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -321,17 +320,14 @@
 				DEVELOPMENT_ASSET_PATHS = "\"AsyncMultiplexImage-Demo/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
@@ -339,10 +335,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "app.muukii.AsyncMultiplexImage-Demo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
