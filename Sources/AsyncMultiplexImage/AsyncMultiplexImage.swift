@@ -169,9 +169,9 @@ public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMult
         case .none:
           return .empty
         case .some(.progress(let image)):
-          return .progress(image)
+          return .progress(image.renderingMode(.original))
         case .some(.final(let image)):
-          return .success(image)
+          return .success(image.renderingMode(.original))
         }
       }())
       .frame(width: proxy.size.width, height: proxy.size.height)
