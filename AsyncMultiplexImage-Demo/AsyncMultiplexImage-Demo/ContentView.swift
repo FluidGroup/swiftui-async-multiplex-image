@@ -48,7 +48,7 @@ struct ContentView: View {
   var body: some View {
     VStack {
       AsyncMultiplexImage(
-        urls: buildURLs(basePhotoURLString),
+        multiplexImage: .init(identifier: basePhotoURLString, urls: buildURLs(basePhotoURLString)),
         downloader: _SlowDownloader(pipeline: .shared)
       ) { phase in
         switch phase {
@@ -56,15 +56,16 @@ struct ContentView: View {
           Text("Loading")
         case .progress(let image):
           image
+            .resizable()
+            .scaledToFill()
         case .success(let image):
           image
             .resizable()
-            .scaledToFit()
+            .scaledToFill()
         case .failure(let error):
           Text("Error")
         }
       }
-      .id(basePhotoURLString)
       
       HStack {
         Button("1") {

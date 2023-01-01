@@ -66,60 +66,55 @@ public struct AsyncMultiplexImageCandidate: Hashable {
 
 }
 
+public struct MultiplexImage: Hashable {
+  
+  public static func == (lhs: MultiplexImage, rhs: MultiplexImage) -> Bool {
+    lhs.identifier == rhs.identifier
+  }
+  
+  public func hash(into hasher: inout Hasher) {
+    identifier.hash(into: &hasher)
+  }
+  
+  public let identifier: String
+  
+  fileprivate private(set) var _urlsProvider: @MainActor (CGSize) -> [URL]
+  
+  public init(
+    identifier: String,
+    urlsProvider: @escaping @MainActor (CGSize) -> [URL]
+  ) {
+    self.identifier = identifier
+    self._urlsProvider = urlsProvider
+  }
+  
+  public init(identifier: String, urls: [URL]) {
+    self.init(identifier: identifier, urlsProvider: { _ in urls })
+  }
+  
+}
+
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
   @State private var candidates: [AsyncMultiplexImageCandidate] = []
     
   @State private var internalView: _internal_AsyncMultiplexImage<Content, Downloader>?
   
-  private let urlsProvider: (CGSize) -> [URL]
+  private let multiplexImage: MultiplexImage
   private let downloader: Downloader
   private let content: (AsyncMultiplexImagePhase) -> Content
   
   public init(
-    urlsProvider: @escaping (CGSize) -> [URL],
+    multiplexImage: MultiplexImage,
     downloader: Downloader,
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
     
-    self.urlsProvider = urlsProvider
+    self.multiplexImage = multiplexImage
     self.downloader = downloader
     self.content = content
   }
-  
-  /// Primitive initializer
-  public init(
-    urls: [URL],
-    downloader: Downloader,
-    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
-  ) {
-    
-    self.init(urlsProvider: { _ in urls }, downloader: downloader, content: content)
-  }
-    
-  // TODO: tmp
-  public init(
-    urls: [URL],
-    downloader: Downloader
-  ) where Content == _ConditionalContent<_ConditionalContent<EmptyView, Image>, _ConditionalContent<Image, EmptyView>> {
-    self.init(
-      urls: urls,
-      downloader: downloader,
-      content: { phase in
-        switch phase {
-        case .empty:
-          EmptyView()
-        case .progress(let image):
-          image
-        case .success(let image):
-          image
-        case .failure:
-          EmptyView()
-        }
-      }
-    )
-  }
-  
+ 
   public var body: some View {
     GeometryReader { proxy in
       Group {
@@ -130,9 +125,9 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
           Color.clear
         }
       }
-      .onChangeWithPrevious(of: proxy.size, emitsInitial: true, perform: { newValue, oldValue in
+      .onChangeWithPrevious(of: proxy.size, emitsInitial: true, perform: { newSize, _ in
         
-        let urls = urlsProvider(newValue)
+        let urls = multiplexImage._urlsProvider(newSize)
         
         let candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
         
@@ -140,6 +135,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
         self.internalView = .init(candidates: candidates, downloader: downloader, content: content)
       })
     }
+    .id(multiplexImage)
   }
   
 }
