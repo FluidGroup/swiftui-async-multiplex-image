@@ -132,7 +132,6 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
           self.candidates = candidates
           self.internalView = .init(candidates: candidates, downloader: downloader, content: content)
         })
-        .id(candidates) // to make distinct views for each image-set.
     }
   }
   
