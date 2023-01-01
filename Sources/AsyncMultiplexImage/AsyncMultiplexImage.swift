@@ -122,17 +122,23 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   
   public var body: some View {
     GeometryReader { proxy in
-      internalView
-        .onChangeWithPrevious(of: proxy.size, emitsInitial: true, perform: { newValue, oldValue in
-          
-          let urls = urlsProvider(newValue)
-          
-          let candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
-          
-          self.candidates = candidates
-          self.internalView = .init(candidates: candidates, downloader: downloader, content: content)
-        })
-        .id(candidates) // to make distinct views for each image-set.
+      Group {
+        if let internalView {
+          internalView
+        } else {
+          // for <= iOS 14
+          Color.clear
+        }
+      }
+      .onChangeWithPrevious(of: proxy.size, emitsInitial: true, perform: { newValue, oldValue in
+        
+        let urls = urlsProvider(newValue)
+        
+        let candidates = urls.enumerated().map { i, e in AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e)) }
+        
+        self.candidates = candidates
+        self.internalView = .init(candidates: candidates, downloader: downloader, content: content)
+      })
     }
   }
   

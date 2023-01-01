@@ -64,6 +64,7 @@ struct ContentView: View {
           Text("Error")
         }
       }
+      .id(basePhotoURLString)
       
       HStack {
         Button("1") {
