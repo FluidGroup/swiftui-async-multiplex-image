@@ -25,7 +25,7 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
     
     #endif
     let response = try await pipeline.image(for: .init(urlRequest: candidate.urlRequest))
-    return .init(uiImage: response.image)
+    return .init(uiImage: response)
   }
   
 }
@@ -42,7 +42,7 @@ public struct SlowDownloader: AsyncMultiplexImageDownloader {
   public func download(candidate: AsyncMultiplexImageCandidate) async throws -> Image {
     try? await Task.sleep(nanoseconds: 5_000_000_000 - ((UInt64(candidate.index) * 1_000_000_000)))
     let response = try await pipeline.image(for: .init(urlRequest: candidate.urlRequest))
-    return .init(uiImage: response.image)
+    return .init(uiImage: response)
   }
   
 }
