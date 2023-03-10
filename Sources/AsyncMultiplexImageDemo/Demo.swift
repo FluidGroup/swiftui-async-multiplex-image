@@ -27,13 +27,13 @@ struct AsyncMultiplexImage_Previews: PreviewProvider {
 
     Group {
       AsyncMultiplexImage(
-        urlsProvider: { size in
+        multiplexImage: .init(identifier: "", urlsProvider: { size in
           buildURLs(
             baseURLString:
               "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
             size: size
           )
-        },
+        }),
         downloader: SlowDownloader(pipeline: .shared)
       ) { phase in
         switch phase {
