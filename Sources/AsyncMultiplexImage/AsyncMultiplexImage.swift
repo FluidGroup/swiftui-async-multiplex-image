@@ -95,7 +95,30 @@ public struct MultiplexImage: Hashable {
 }
 
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
-  
+
+  private let multiplexImage: MultiplexImage
+
+  private let backing: _AsyncMultiplexImage<Content, Downloader>
+
+  public init(
+    multiplexImage: MultiplexImage,
+    downloader: Downloader,
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+  ) {
+
+    self.multiplexImage = multiplexImage
+    self.backing = _AsyncMultiplexImage(multiplexImage: multiplexImage, downloader: downloader, content: content)
+  }
+
+  public var body: some View {
+    backing
+      .id(multiplexImage)
+  }
+
+}
+
+private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
+
   @State private var candidates: [AsyncMultiplexImageCandidate] = []
     
   @State private var internalView: _internal_AsyncMultiplexImage<Content, Downloader>?
