@@ -30,7 +30,11 @@ extension OSLog {
   @inline(__always)
   private static func makeOSLogInDebug(isEnabled: Bool = true, _ factory: () -> OSLog) -> OSLog {
 #if DEBUG
-    return factory()
+    if ProcessInfo.processInfo.environment["ASYNC_MULTIPLEX_IMAGE_LOG_ENABLED"] == "1" {
+      return factory()
+    } else {
+      return .disabled
+    }
 #else
     return .disabled
 #endif
