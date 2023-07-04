@@ -52,14 +52,16 @@ public final class DownloadManager {
 }
 
 public protocol AsyncMultiplexImageDownloader {
-  
-  func download(candidate: AsyncMultiplexImageCandidate) async throws -> Image
+
+  associatedtype Result
+
+  func download(candidate: AsyncMultiplexImageCandidate) async throws -> Result
 }
 
-public enum AsyncMultiplexImagePhase {
+public enum AsyncMultiplexImagePhase<Result> {
   case empty
-  case progress(Image)
-  case success(Image)
+  case progress(Result)
+  case success(Result)
   case failure(Error)
 }
 
@@ -107,7 +109,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   public init(
     multiplexImage: MultiplexImage,
     downloader: Downloader,
-    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase<Downloader.Result>) -> Content
   ) {
 
     self.multiplexImage = multiplexImage
@@ -129,12 +131,12 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
   
   private let multiplexImage: MultiplexImage
   private let downloader: Downloader
-  private let content: (AsyncMultiplexImagePhase) -> Content
-  
+  private let content: (AsyncMultiplexImagePhase<Downloader.Result>) -> Content
+
   public init(
     multiplexImage: MultiplexImage,
     downloader: Downloader,
-    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase<Downloader.Result>) -> Content
   ) {
     
     self.multiplexImage = multiplexImage
@@ -170,18 +172,18 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
 @_spi(Internal)
 public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
   
-  @State private var item: ResultContainer.Item?
+  @State private var item: ResultContainer<Downloader>.Item?
   @State private var task: Task<Void, Never>?
   
   private let downloader: Downloader
   private let candidates: [AsyncMultiplexImageCandidate]
-  private let content: (AsyncMultiplexImagePhase) -> Content
-  
+  private let content: (AsyncMultiplexImagePhase<Downloader.Result>) -> Content
+
   /// Primitive initializer
   init(
     candidates: [AsyncMultiplexImageCandidate],
     downloader: Downloader,
-    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase<Downloader.Result>) -> Content
   ) {
     self.candidates = candidates
     self.downloader = downloader
@@ -196,9 +198,9 @@ public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMult
         case .none:
           return .empty
         case .some(.progress(let image)):
-          return .progress(image.renderingMode(.original))
+          return .progress(image)
         case .some(.final(let image)):
-          return .success(image.renderingMode(.original))
+          return .success(image)
         }
       }())
       .frame(width: proxy.size.width, height: proxy.size.height)
@@ -208,7 +210,7 @@ public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMult
                   
       let currentTask = Task {
         // this instance will be alive until finish
-        let container = ResultContainer()
+        let container = ResultContainer<Downloader>()
         let stream = await container.make(candidates: candidates, on: downloader)
        
         do {
@@ -230,11 +232,11 @@ public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMult
   
 }
 
-actor ResultContainer {
-  
+actor ResultContainer<Downloader: AsyncMultiplexImageDownloader>{
+
   enum Item {
-    case progress(Image)
-    case final(Image)
+    case progress(Downloader.Result)
+    case final(Downloader.Result)
   }
   
   var lastCandidate: AsyncMultiplexImageCandidate? = nil
@@ -247,7 +249,7 @@ actor ResultContainer {
     progressImagesTask?.cancel()
   }
     
-  func make<Downloader: AsyncMultiplexImageDownloader>(
+  func make(
     candidates: [AsyncMultiplexImageCandidate],
     on downloader: Downloader
   ) -> AsyncThrowingStream<Item, Error> {

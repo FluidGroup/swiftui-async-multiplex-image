@@ -30,6 +30,32 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
   
 }
 
+public struct AsyncMultiplexImageNukePlatformImageDownloader: AsyncMultiplexImageDownloader {
+
+  public let pipeline: ImagePipeline
+  public let debugDelay: TimeInterval
+
+  public init(
+    pipeline: ImagePipeline,
+    debugDelay: TimeInterval
+  ) {
+    self.pipeline = pipeline
+    self.debugDelay = debugDelay
+  }
+
+  public func download(candidate: AsyncMultiplexImageCandidate) async throws -> PlatformImage {
+
+#if DEBUG
+
+    try? await Task.sleep(nanoseconds: UInt64(debugDelay * 1_000_000_000))
+
+#endif
+    let response = try await pipeline.image(for: .init(urlRequest: candidate.urlRequest))
+    return response
+  }
+
+}
+
 #if DEBUG
 public struct SlowDownloader: AsyncMultiplexImageDownloader {
   

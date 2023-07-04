@@ -18,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     let window = UIWindow()
     
-    let controller = UIHostingController(rootView: ContentView())
+    let controller = UIHostingController(rootView: RootView())
     
     window.rootViewController = controller
     self.window = window

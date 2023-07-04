@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4B4D7D5B2A5460FA0047D926 /* SwiftUISupport in Frameworks */ = {isa = PBXBuildFile; productRef = 4B4D7D5A2A5460FA0047D926 /* SwiftUISupport */; };
 		4B57105B28D0AC7F00AA053C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B57105A28D0AC7F00AA053C /* ContentView.swift */; };
 		4B57105D28D0AC8000AA053C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B57105C28D0AC8000AA053C /* Assets.xcassets */; };
 		4B57106128D0AC8000AA053C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B57106028D0AC8000AA053C /* Preview Assets.xcassets */; };
@@ -32,6 +33,7 @@
 			files = (
 				4B57106A28D0ACA300AA053C /* AsyncMultiplexImage in Frameworks */,
 				4B57106C28D0ACA800AA053C /* AsyncMultiplexImage-Nuke in Frameworks */,
+				4B4D7D5B2A5460FA0047D926 /* SwiftUISupport in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +104,7 @@
 			packageProductDependencies = (
 				4B57106928D0ACA300AA053C /* AsyncMultiplexImage */,
 				4B57106B28D0ACA800AA053C /* AsyncMultiplexImage-Nuke */,
+				4B4D7D5A2A5460FA0047D926 /* SwiftUISupport */,
 			);
 			productName = "AsyncMultiplexImage-Demo";
 			productReference = 4B57105528D0AC7F00AA053C /* AsyncMultiplexImage-Demo.app */;
@@ -131,6 +134,9 @@
 				Base,
 			);
 			mainGroup = 4B57104C28D0AC7F00AA053C;
+			packageReferences = (
+				4B4D7D592A5460FA0047D926 /* XCRemoteSwiftPackageReference "swiftui-support" */,
+			);
 			productRefGroup = 4B57105628D0AC7F00AA053C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -292,7 +298,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
@@ -327,7 +333,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
@@ -367,7 +373,23 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		4B4D7D592A5460FA0047D926 /* XCRemoteSwiftPackageReference "swiftui-support" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidGroup/swiftui-support.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		4B4D7D5A2A5460FA0047D926 /* SwiftUISupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4B4D7D592A5460FA0047D926 /* XCRemoteSwiftPackageReference "swiftui-support" */;
+			productName = SwiftUISupport;
+		};
 		4B57106928D0ACA300AA053C /* AsyncMultiplexImage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AsyncMultiplexImage;

@@ -5,8 +5,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kean/Nuke.git",
       "state" : {
-        "revision" : "9df754fe4ca4c5abdf3376e4e9ec33b3485bf180",
-        "version" : "11.2.1"
+        "revision" : "f67266f176af4add9f7a7020486826d82d562473",
+        "version" : "12.1.2"
+      }
+    },
+    {
+      "identity" : "swiftui-gesture-velocity",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/FluidGroup/swiftui-gesture-velocity",
+      "state" : {
+        "revision" : "9c83f8995f9e5efc29db2fca4b9ff058283f1603",
+        "version" : "1.0.0"
       }
     },
     {
@@ -14,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/FluidGroup/swiftui-support.git",
       "state" : {
-        "revision" : "16ee1ed32465765f6eb293cb45862618e44321f0",
-        "version" : "0.2.3"
+        "branch" : "main",
+        "revision" : "5370208035e54339d08aa7ff2551cf554626c409"
       }
     }
   ],
