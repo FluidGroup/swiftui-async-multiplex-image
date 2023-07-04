@@ -53,7 +53,7 @@ public final class DownloadManager {
 
 public protocol AsyncMultiplexImageDownloader {
   
-  func download(candidate: AsyncMultiplexImageCandidate) async throws -> Image
+  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> Image
 }
 
 public enum AsyncMultiplexImagePhase {
@@ -202,26 +202,26 @@ public struct _internal_AsyncMultiplexImage<Content: View, Downloader: AsyncMult
         }
       }())
       .frame(width: proxy.size.width, height: proxy.size.height)
+      .onAppear {
+
+        let currentTask = Task {
+          // this instance will be alive until finish
+          let container = ResultContainer()
+          let stream = await container.make(candidates: candidates, downloader: downloader, displaySize: proxy.size)
+
+          do {
+            for try await item in stream {
+              self.item = item
+            }
+          } catch {
+            // FIXME: Error handling
+          }
+        }
+
+        task = currentTask
+      }
     }
     .clipped()
-    .onAppear {
-                  
-      let currentTask = Task {
-        // this instance will be alive until finish
-        let container = ResultContainer()
-        let stream = await container.make(candidates: candidates, on: downloader)
-       
-        do {
-          for try await item in stream {
-            self.item = item
-          }
-        } catch {
-          // FIXME: Error handling
-        }
-      }
-      
-      task = currentTask
-    }
     .onDisappear {
       task?.cancel()
     }
@@ -249,7 +249,8 @@ actor ResultContainer {
     
   func make<Downloader: AsyncMultiplexImageDownloader>(
     candidates: [AsyncMultiplexImageCandidate],
-    on downloader: Downloader
+    downloader: Downloader,
+    displaySize: CGSize
   ) -> AsyncThrowingStream<Item, Error> {
     
     Log.debug(.`generic`, "Load: \(candidates.map { $0.urlRequest })")
@@ -280,7 +281,7 @@ actor ResultContainer {
       let idealImage = Task {
         
         do {
-          let result = try await downloader.download(candidate: idealCandidate)
+          let result = try await downloader.download(candidate: idealCandidate, displaySize: displaySize)
 
           progressImagesTask?.cancel()
 
@@ -316,8 +317,8 @@ actor ResultContainer {
             }
             
             Log.debug(.`generic`, "Load progress image => \(candidate.index)")
-            let result = try await downloader.download(candidate: candidate)
-            
+            let result = try await downloader.download(candidate: candidate, displaySize: displaySize)
+
             guard Task.isCancelled == false else {
               Log.debug(.`generic`, "Cancelled progress images")
               return
