@@ -34,7 +34,7 @@ struct AsyncMultiplexImage_Previews: PreviewProvider {
             size: size
           )
         }),
-        downloader: SlowDownloader(pipeline: .shared)
+        downloader: AsyncMultiplexImageNukeDownloader(pipeline: .shared, debugDelay: 2)
       ) { phase in
         switch phase {
         case .empty:
