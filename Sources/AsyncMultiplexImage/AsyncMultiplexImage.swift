@@ -121,15 +121,18 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   private let multiplexImage: MultiplexImage
   private let downloader: Downloader
   private let content: (AsyncMultiplexImagePhase) -> Content
+  private let clearsContentBeforeDownload: Bool
   // sharing
   @StateObject private var viewModel: _AsyncMultiplexImageViewModel = .init()
 
   public init(
     multiplexImage: MultiplexImage,
     downloader: Downloader,
+    clearsContentBeforeDownload: Bool = true,
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
 
+    self.clearsContentBeforeDownload = clearsContentBeforeDownload
     self.multiplexImage = multiplexImage
     self.downloader = downloader
     self.content = content
@@ -139,6 +142,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
   public var body: some View {
     _AsyncMultiplexImage(
       viewModel: viewModel,
+      clearsContentBeforeDownload: clearsContentBeforeDownload,
       multiplexImage: multiplexImage,
       downloader: downloader,
       content: content
@@ -173,7 +177,7 @@ private final class _AsyncMultiplexImageViewModel: ObservableObject {
 private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View
 {
 
-  private struct Pair: Equatable {
+  private struct UpdateTrigger: Equatable {
     let size: CGSize
     let image: MultiplexImage
   }
@@ -186,15 +190,18 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
   private let multiplexImage: MultiplexImage
   private let downloader: Downloader
   private let content: (AsyncMultiplexImagePhase) -> Content
+  private let clearsContentBeforeDownload: Bool
 
   public init(
     viewModel: _AsyncMultiplexImageViewModel,
+    clearsContentBeforeDownload: Bool,
     multiplexImage: MultiplexImage,
     downloader: Downloader,
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
 
     self.viewModel = viewModel
+    self.clearsContentBeforeDownload = clearsContentBeforeDownload
     self.multiplexImage = multiplexImage
     self.downloader = downloader
     self.content = content
@@ -217,14 +224,21 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
       )
       .frame(width: proxy.size.width, height: proxy.size.height)
       .onChangeWithPrevious(
-        of: Pair(size: proxy.size, image: multiplexImage),
+        of: UpdateTrigger(
+          size: proxy.size,
+          image: multiplexImage
+        ),
         emitsInitial: true,
-        perform: { pair, _ in
+        perform: { trigger, _ in
 
-          let newSize = pair.size
+          let newSize = trigger.size
 
           guard newSize.height > 0 && newSize.width > 0 else {
             return
+          }
+
+          if clearsContentBeforeDownload {
+            self.item = nil
           }
 
           // making new candidates
