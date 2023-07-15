@@ -238,7 +238,11 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
           }
 
           if clearsContentBeforeDownload {
-            self.item = nil
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+              self.item = nil
+            }
           }
 
           // making new candidates
