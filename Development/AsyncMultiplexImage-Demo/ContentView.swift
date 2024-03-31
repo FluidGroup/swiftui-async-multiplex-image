@@ -20,7 +20,7 @@ struct _SlowDownloader: AsyncMultiplexImageDownloader {
     self.pipeline = pipeline
   }
   
-  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> Image {
+  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> UIImage {
 
     switch candidate.index {
     case 0:
@@ -36,7 +36,7 @@ struct _SlowDownloader: AsyncMultiplexImageDownloader {
     }
     
     let response = try await pipeline.image(for: .init(urlRequest: candidate.urlRequest))
-    return .init(uiImage: response)
+    return response
   }
   
 }
