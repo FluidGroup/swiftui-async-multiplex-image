@@ -71,7 +71,7 @@ public final class DownloadManager {
 
 public protocol AsyncMultiplexImageDownloader {
 
-  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> Image
+  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> UIImage
 }
 
 public enum AsyncMultiplexImagePhase {
@@ -100,7 +100,7 @@ public struct MultiplexImage: Hashable {
 
   public let identifier: String
 
-  fileprivate private(set) var _urlsProvider: @MainActor (CGSize) -> [URL]
+  private(set) var _urlsProvider: @MainActor (CGSize) -> [URL]
 
   public init(
     identifier: String,
@@ -152,7 +152,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
 }
 
 @MainActor
-private final class _AsyncMultiplexImageViewModel: ObservableObject {
+final class _AsyncMultiplexImageViewModel: ObservableObject {
 
   private var task: Task<Void, Never>?
 
@@ -172,6 +172,7 @@ private final class _AsyncMultiplexImageViewModel: ObservableObject {
     guard task.isCancelled == false else { return }
     task.cancel()
   }
+
 }
 
 private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View
@@ -216,9 +217,9 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
           case .none:
             return .empty
           case .some(.progress(let image)):
-            return .progress(image.renderingMode(.original))
+            return .progress(.init(uiImage: image).renderingMode(.original))
           case .some(.final(let image)):
-            return .success(image.renderingMode(.original))
+            return .success(.init(uiImage: image).renderingMode(.original))
           }
         }()
       )
@@ -285,8 +286,8 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
 actor ResultContainer {
 
   enum Item {
-    case progress(Image)
-    case final(Image)
+    case progress(UIImage)
+    case final(UIImage)
   }
 
   var lastCandidate: AsyncMultiplexImageCandidate? = nil
