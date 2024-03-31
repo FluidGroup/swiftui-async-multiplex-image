@@ -128,6 +128,8 @@ final class UIKitContentView: UIView {
 
     super.init(frame: .null)
 
+    imageView.backgroundColor = .init(white: 0.5, alpha: 0.2)
+
     let buttonsView = SwiftUIHostingView { [imageView] in
       HStack {
         Button("1") {

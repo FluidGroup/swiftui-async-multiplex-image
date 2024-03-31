@@ -2,7 +2,7 @@
 #if canImport(UIKit)
 import UIKit
 
-open class AsyncMultiplexImageView: UIImageView {
+open class AsyncMultiplexImageView: UIView {
 
   // MARK: - Properties
 
@@ -13,7 +13,8 @@ open class AsyncMultiplexImageView: UIImageView {
   private var currentUsingImage: MultiplexImage?
   private var currentUsingContentSize: CGSize?
   private let clearsContentBeforeDownload: Bool
-  private var stashedImage: UIImage? = nil
+
+  private let imageView: UIImageView = .init()
 
   // MARK: - Initializers
 
@@ -28,8 +29,8 @@ open class AsyncMultiplexImageView: UIImageView {
 
     super.init(frame: .null)
 
-    self.clipsToBounds = true
-    self.contentMode = .scaleAspectFill
+    imageView.clipsToBounds = true
+    imageView.contentMode = .scaleAspectFill
 
     NotificationCenter.default.addObserver(
       self,
@@ -44,6 +45,15 @@ open class AsyncMultiplexImageView: UIImageView {
       name: UIApplication.willEnterForegroundNotification,
       object: nil
     )
+
+    addSubview(imageView)
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      imageView.topAnchor.constraint(equalTo: topAnchor),
+      imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+      imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+      imageView.trailingAnchor.constraint(equalTo: trailingAnchor)
+    ])
 
   }
 
@@ -95,7 +105,7 @@ open class AsyncMultiplexImageView: UIImageView {
     }
 
     if clearsContentBeforeDownload {
-      self.image = nil
+      imageView.image = nil
     }
 
     // making new candidates
@@ -107,7 +117,7 @@ open class AsyncMultiplexImageView: UIImageView {
 
     // start download
 
-    let currentTask = Task { @MainActor [downloader] in
+    let currentTask = Task { [downloader] in
       // this instance will be alive until finish
       let container = ResultContainer()
       let stream = await container.make(
@@ -119,16 +129,25 @@ open class AsyncMultiplexImageView: UIImageView {
       do {
         for try await item in stream {
 
-          // TODO:
+          // TODO: support custom animation
 
-          switch item {
-          case .progress(let image):
-            self.image = image
-          case .final(let image):
-            self.image = image
+          await MainActor.run {
+            CATransaction.begin()
+            let transition = CATransition()
+            transition.duration = 0.13
+            switch item {
+            case .progress(let image):
+              imageView.image = image
+            case .final(let image):
+              imageView.image = image
+            }
+            self.layer.add(transition, forKey: "transition")
+            CATransaction.commit()
           }
 
         }
+
+        Log.debug(.uiKit, "download finished")
       } catch {
         // FIXME: Error handling
       }
@@ -139,8 +158,8 @@ open class AsyncMultiplexImageView: UIImageView {
 
   private func unloadImage() {
 
-    weak var _image = self.image
-    self.image = nil
+    weak var _image = imageView.image
+    imageView.image = nil
 
     #if DEBUG
     if _image != nil {
