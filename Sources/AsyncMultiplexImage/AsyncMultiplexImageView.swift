@@ -12,26 +12,48 @@ open class AsyncMultiplexImageView: UIImageView {
 
   private var currentUsingImage: MultiplexImage?
   private var currentUsingContentSize: CGSize?
-
   private let clearsContentBeforeDownload: Bool
+  private var stashedImage: UIImage? = nil
 
   // MARK: - Initializers
 
   public init(
     downloader: any AsyncMultiplexImageDownloader,
-    clearsContentBeforeDownload: Bool = true
+    clearsContentBeforeDownload: Bool = true,
+    unloadsImageOnBackground: Bool = false
   ) {
+    
     self.downloader = downloader
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
 
     super.init(frame: .null)
 
+    self.clipsToBounds = true
     self.contentMode = .scaleAspectFill
+
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(didEnterBackground),
+      name: UIApplication.didEnterBackgroundNotification,
+      object: nil
+    )
+
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(willEnterForeground),
+      name: UIApplication.willEnterForegroundNotification,
+      object: nil
+    )
+
   }
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+
+  deinit {
+    Log.debug(.uiKit, "deinit \(self)")
   }
 
   // MARK: - Functions
@@ -45,12 +67,19 @@ open class AsyncMultiplexImageView: UIImageView {
     }
   }
 
+  @objc
+  private func didEnterBackground() {
+    unloadImage()
+  }
+
+  @objc
+  private func willEnterForeground() {
+    startDownload()
+  }
+
   public func setMultiplexImage(_ image: MultiplexImage) {
     currentUsingImage = image
-
-    if clearsContentBeforeDownload {
-      self.image = nil
-    }
+    startDownload()
   }
 
   private func startDownload() {
@@ -108,6 +137,17 @@ open class AsyncMultiplexImageView: UIImageView {
     viewModel.registerCurrentTask(currentTask)
   }
 
-}
+  private func unloadImage() {
 
+    weak var _image = self.image
+    self.image = nil
+
+    #if DEBUG
+    if _image != nil {
+      Log.debug(.uiKit, "\(String(describing: _image)) was not deallocated afeter unload")
+    }
+    #endif
+
+  }
+}
 #endif

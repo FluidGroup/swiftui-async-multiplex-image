@@ -58,8 +58,13 @@ extension OSLog {
     OSLog.init(subsystem: "app.muukii", category: "default")
   }
   static let view: OSLog = makeOSLogInDebug {
-    OSLog.init(subsystem: "app.muukii", category: "View")
+    OSLog.init(subsystem: "app.muukii", category: "SwiftUIVersion")
   }
+
+  static let uiKit: OSLog = makeOSLogInDebug {
+    OSLog.init(subsystem: "app.muukii", category: "UIKitVersion")
+  }
+
 }
 
 @MainActor

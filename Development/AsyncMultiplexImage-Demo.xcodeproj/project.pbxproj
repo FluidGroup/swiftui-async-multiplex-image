@@ -12,6 +12,8 @@
 		4B57106128D0AC8000AA053C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B57106028D0AC8000AA053C /* Preview Assets.xcassets */; };
 		4B57106A28D0ACA300AA053C /* AsyncMultiplexImage in Frameworks */ = {isa = PBXBuildFile; productRef = 4B57106928D0ACA300AA053C /* AsyncMultiplexImage */; };
 		4B57106C28D0ACA800AA053C /* AsyncMultiplexImage-Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 4B57106B28D0ACA800AA053C /* AsyncMultiplexImage-Nuke */; };
+		4B5AC66A2BB96A8D00641C3B /* SwiftUIHosting in Frameworks */ = {isa = PBXBuildFile; productRef = 4B5AC6692BB96A8D00641C3B /* SwiftUIHosting */; };
+		4B5AC66D2BB96AAB00641C3B /* MondrianLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 4B5AC66C2BB96AAB00641C3B /* MondrianLayout */; };
 		4B7E24F9296184E300E53388 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7E24F8296184E300E53388 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -30,6 +32,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4B5AC66D2BB96AAB00641C3B /* MondrianLayout in Frameworks */,
+				4B5AC66A2BB96A8D00641C3B /* SwiftUIHosting in Frameworks */,
 				4B57106A28D0ACA300AA053C /* AsyncMultiplexImage in Frameworks */,
 				4B57106C28D0ACA800AA053C /* AsyncMultiplexImage-Nuke in Frameworks */,
 			);
@@ -102,6 +106,8 @@
 			packageProductDependencies = (
 				4B57106928D0ACA300AA053C /* AsyncMultiplexImage */,
 				4B57106B28D0ACA800AA053C /* AsyncMultiplexImage-Nuke */,
+				4B5AC6692BB96A8D00641C3B /* SwiftUIHosting */,
+				4B5AC66C2BB96AAB00641C3B /* MondrianLayout */,
 			);
 			productName = "AsyncMultiplexImage-Demo";
 			productReference = 4B57105528D0AC7F00AA053C /* AsyncMultiplexImage-Demo.app */;
@@ -131,6 +137,10 @@
 				Base,
 			);
 			mainGroup = 4B57104C28D0AC7F00AA053C;
+			packageReferences = (
+				4B5AC6682BB96A8D00641C3B /* XCRemoteSwiftPackageReference "swiftui-hosting" */,
+				4B5AC66B2BB96AAB00641C3B /* XCRemoteSwiftPackageReference "MondrianLayout" */,
+			);
 			productRefGroup = 4B57105628D0AC7F00AA053C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -369,6 +379,25 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		4B5AC6682BB96A8D00641C3B /* XCRemoteSwiftPackageReference "swiftui-hosting" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidGroup/swiftui-hosting.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+		4B5AC66B2BB96AAB00641C3B /* XCRemoteSwiftPackageReference "MondrianLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidGroup/MondrianLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		4B57106928D0ACA300AA053C /* AsyncMultiplexImage */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -377,6 +406,16 @@
 		4B57106B28D0ACA800AA053C /* AsyncMultiplexImage-Nuke */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = "AsyncMultiplexImage-Nuke";
+		};
+		4B5AC6692BB96A8D00641C3B /* SwiftUIHosting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4B5AC6682BB96A8D00641C3B /* XCRemoteSwiftPackageReference "swiftui-hosting" */;
+			productName = SwiftUIHosting;
+		};
+		4B5AC66C2BB96AAB00641C3B /* MondrianLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4B5AC66B2BB96AAB00641C3B /* XCRemoteSwiftPackageReference "MondrianLayout" */;
+			productName = MondrianLayout;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
