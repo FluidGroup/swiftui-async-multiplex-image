@@ -35,7 +35,9 @@ open class AsyncMultiplexImageView: UIView {
 
   private let viewModel: _AsyncMultiplexImageViewModel = .init()
 
-  private var currentUsingImage: MultiplexImage?
+  private var currentUsingNetworkImage: MultiplexImage?
+  private var currentUsingImage: UIImage?
+
   private var currentUsingContentSize: CGSize?
   private let clearsContentBeforeDownload: Bool
 
@@ -54,7 +56,7 @@ open class AsyncMultiplexImageView: UIView {
     offloadStrategy: any OffloadStrategy = OffloadInvisibleStrategy(),
     clearsContentBeforeDownload: Bool = true
   ) {
-    
+
     self.downloader = downloader
     self.offloadStrategy = offloadStrategy
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
@@ -101,18 +103,28 @@ open class AsyncMultiplexImageView: UIView {
   // MARK: - Functions
 
   private func onUpdateState(state: borrowing State) {
-    let offloads = offloadStrategy.offloads(using: state)
 
-    if offloads {
-      viewModel.cancelCurrentTask()
-      unloadImage()
+    if state.isInBackground || state.isInDisplay == false {
+
+      let offloads = offloadStrategy.offloads(using: state)
+
+      if offloads {
+        viewModel.cancelCurrentTask()
+        unloadNetworkImage()
+      }
+
+    } else {
+      if let _ = currentUsingNetworkImage {
+        startDownload()
+      }
     }
+
   }
 
   open override func layoutSubviews() {
     super.layoutSubviews()
 
-    if let _ = currentUsingImage, bounds.size != currentUsingContentSize {
+    if let _ = currentUsingNetworkImage, bounds.size != currentUsingContentSize {
       currentUsingContentSize = bounds.size
       startDownload()
     }
@@ -134,25 +146,31 @@ open class AsyncMultiplexImageView: UIView {
   }
 
   public func setMultiplexImage(_ image: MultiplexImage) {
-    currentUsingImage = image
+    currentUsingNetworkImage = image
     startDownload()
   }
 
   public func setImage(_ image: UIImage) {
-    currentUsingImage = nil
+
+    if clearsContentBeforeDownload {
+      imageView.image = nil
+    }
+
+    currentUsingNetworkImage = nil
+    currentUsingImage = image
     viewModel.cancelCurrentTask()
     imageView.image = image
   }
 
   public func clearImage() {
-    currentUsingImage = nil
+    currentUsingNetworkImage = nil
     imageView.image = nil
     viewModel.cancelCurrentTask()
   }
 
   private func startDownload() {
 
-    guard let image = currentUsingImage else {
+    guard let image = currentUsingNetworkImage else {
       return
     }
 
@@ -160,10 +178,6 @@ open class AsyncMultiplexImageView: UIView {
 
     guard newSize.height > 0 && newSize.width > 0 else {
       return
-    }
-
-    if clearsContentBeforeDownload {
-      imageView.image = nil
     }
 
     // making new candidates
@@ -189,7 +203,7 @@ open class AsyncMultiplexImageView: UIView {
 
           // TODO: support custom animation
 
-          if capturedImage == self.currentUsingImage {
+          if capturedImage == self.currentUsingNetworkImage {
 
             await MainActor.run {
 
@@ -223,16 +237,20 @@ open class AsyncMultiplexImageView: UIView {
     viewModel.registerCurrentTask(currentTask)
   }
 
-  private func unloadImage() {
+  private func unloadNetworkImage() {
+
+    guard let _ = currentUsingNetworkImage else {
+      return
+    }
 
     weak var _image = imageView.image
     imageView.image = nil
 
-    #if DEBUG
+#if DEBUG
     if _image != nil {
       Log.debug(.uiKit, "\(String(describing: _image)) was not deallocated afeter unload")
     }
-    #endif
+#endif
 
   }
 }
