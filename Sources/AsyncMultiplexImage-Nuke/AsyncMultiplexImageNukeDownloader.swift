@@ -17,7 +17,7 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
   }
 
   public func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws
-    -> Image
+    -> UIImage
   {
 
     #if DEBUG
@@ -41,7 +41,7 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
       )
     )
 
-    return .init(uiImage: response)
+    return response
   }
 
 }
