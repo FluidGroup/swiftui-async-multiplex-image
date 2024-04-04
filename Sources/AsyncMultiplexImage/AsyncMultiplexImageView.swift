@@ -4,9 +4,34 @@ import UIKit
 
 open class AsyncMultiplexImageView: UIView {
 
+  public protocol OffloadStrategy {
+    func offloads(using state: borrowing State) -> Bool
+  }
+
+  public struct OffloadInvisibleStrategy: OffloadStrategy {
+
+    public init() {
+
+    }
+
+    public func offloads(using state: borrowing State) -> Bool {
+      state.isInDisplay == false
+    }
+  }
+
+  public struct State: ~Copyable {
+
+    /// Whether the app is in background state
+    public var isInBackground: Bool = false
+
+    /// Whether the view is in view hierarchy
+    public var isInDisplay: Bool = false
+  }
+
   // MARK: - Properties
 
   public let downloader: any AsyncMultiplexImageDownloader
+  public let offloadStrategy: any OffloadStrategy
 
   private let viewModel: _AsyncMultiplexImageViewModel = .init()
 
@@ -16,15 +41,22 @@ open class AsyncMultiplexImageView: UIView {
 
   private let imageView: UIImageView = .init()
 
+  private var state: State = .init() {
+    didSet {
+      onUpdateState(state: state)
+    }
+  }
+
   // MARK: - Initializers
 
   public init(
     downloader: any AsyncMultiplexImageDownloader,
-    clearsContentBeforeDownload: Bool = true,
-    unloadsImageOnBackground: Bool = false
+    offloadStrategy: any OffloadStrategy = OffloadInvisibleStrategy(),
+    clearsContentBeforeDownload: Bool = true
   ) {
     
     self.downloader = downloader
+    self.offloadStrategy = offloadStrategy
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
 
     super.init(frame: .null)
@@ -68,6 +100,15 @@ open class AsyncMultiplexImageView: UIView {
 
   // MARK: - Functions
 
+  private func onUpdateState(state: borrowing State) {
+    let offloads = offloadStrategy.offloads(using: state)
+
+    if offloads {
+      viewModel.cancelCurrentTask()
+      unloadImage()
+    }
+  }
+
   open override func layoutSubviews() {
     super.layoutSubviews()
 
@@ -77,14 +118,19 @@ open class AsyncMultiplexImageView: UIView {
     }
   }
 
+  open override func willMove(toWindow newWindow: UIWindow?) {
+    super.willMove(toWindow: newWindow)
+    state.isInDisplay = newWindow != nil
+  }
+
   @objc
   private func didEnterBackground() {
-    unloadImage()
+    state.isInBackground = true
   }
 
   @objc
   private func willEnterForeground() {
-    startDownload()
+    state.isInBackground = false
   }
 
   public func setMultiplexImage(_ image: MultiplexImage) {
@@ -96,6 +142,12 @@ open class AsyncMultiplexImageView: UIView {
     currentUsingImage = nil
     viewModel.cancelCurrentTask()
     imageView.image = image
+  }
+
+  public func clearImage() {
+    currentUsingImage = nil
+    imageView.image = nil
+    viewModel.cancelCurrentTask()
   }
 
   private func startDownload() {
@@ -140,6 +192,11 @@ open class AsyncMultiplexImageView: UIView {
           if capturedImage == self.currentUsingImage {
 
             await MainActor.run {
+
+              guard Task.isCancelled == false else {
+                return
+              }
+
               CATransaction.begin()
               let transition = CATransition()
               transition.duration = 0.13
