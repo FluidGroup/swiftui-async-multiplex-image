@@ -92,6 +92,12 @@ open class AsyncMultiplexImageView: UIView {
     startDownload()
   }
 
+  public func setImage(_ image: UIImage) {
+    currentUsingImage = nil
+    viewModel.cancelCurrentTask()
+    imageView.image = image
+  }
+
   private func startDownload() {
 
     guard let image = currentUsingImage else {
@@ -117,7 +123,7 @@ open class AsyncMultiplexImageView: UIView {
 
     // start download
 
-    let currentTask = Task { [downloader] in
+    let currentTask = Task { [downloader, capturedImage = image] in
       // this instance will be alive until finish
       let container = ResultContainer()
       let stream = await container.make(
@@ -131,18 +137,22 @@ open class AsyncMultiplexImageView: UIView {
 
           // TODO: support custom animation
 
-          await MainActor.run {
-            CATransaction.begin()
-            let transition = CATransition()
-            transition.duration = 0.13
-            switch item {
-            case .progress(let image):
-              imageView.image = image
-            case .final(let image):
-              imageView.image = image
+          if capturedImage == self.currentUsingImage {
+
+            await MainActor.run {
+              CATransaction.begin()
+              let transition = CATransition()
+              transition.duration = 0.13
+              switch item {
+              case .progress(let image):
+                imageView.image = image
+              case .final(let image):
+                imageView.image = image
+              }
+              self.layer.add(transition, forKey: "transition")
+              CATransaction.commit()
             }
-            self.layer.add(transition, forKey: "transition")
-            CATransaction.commit()
+
           }
 
         }
