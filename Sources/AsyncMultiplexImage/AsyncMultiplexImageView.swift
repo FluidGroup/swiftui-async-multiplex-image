@@ -31,7 +31,7 @@ open class AsyncMultiplexImageView: UIView {
   // MARK: - Properties
 
   public let downloader: any AsyncMultiplexImageDownloader
-  public let offloadStrategy: any OffloadStrategy
+  public let offloadStrategy: (any OffloadStrategy)?
 
   private let viewModel: _AsyncMultiplexImageViewModel = .init()
 
@@ -53,7 +53,7 @@ open class AsyncMultiplexImageView: UIView {
 
   public init(
     downloader: any AsyncMultiplexImageDownloader,
-    offloadStrategy: any OffloadStrategy = OffloadInvisibleStrategy(),
+    offloadStrategy: (any OffloadStrategy)? = nil,
     clearsContentBeforeDownload: Bool = true
   ) {
 
@@ -106,9 +106,9 @@ open class AsyncMultiplexImageView: UIView {
 
     if state.isInBackground || state.isInDisplay == false {
 
-      let offloads = offloadStrategy.offloads(using: state)
+      let offloads = offloadStrategy?.offloads(using: state)
 
-      if offloads {
+      if let offloads, offloads {
         viewModel.cancelCurrentTask()
         unloadNetworkImage()
       }
