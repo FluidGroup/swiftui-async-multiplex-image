@@ -17,8 +17,7 @@ public struct AsyncMultiplexImageNuke: View {
       Group {
         switch phase {
         case .empty:
-          Rectangle()
-            .foregroundColor(Color.init(.displayP3, white: 0.9, opacity: 1))
+          EmptyView()
         case .progress(let image):
           image
             .resizable()
@@ -30,15 +29,25 @@ public struct AsyncMultiplexImageNuke: View {
             .scaledToFill()
             .transition(.opacity.animation(.bouncy))
         case .failure:
-          Rectangle()
-            .foregroundColor(Color.init(.displayP3, white: 0.9, opacity: 1))
+          EmptyView()
         }
       }
     }
+    .background(
+      Rectangle()
+        .foregroundColor(Color.init(.displayP3, white: 0.9, opacity: 1))
+    )
   }
 
 }
 
 #Preview {
-  AsyncMultiplexImageNuke(image: .init(constant: URL(string: "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8")!))
+  AsyncMultiplexImageNuke(
+    image: .init(
+      constant: URL(
+        string:
+          "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
+      )!
+    )
+  )
 }
