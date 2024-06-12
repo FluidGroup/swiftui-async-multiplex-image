@@ -162,7 +162,7 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
     let image: MultiplexImage
   }
 
-  @State private var candidates: [AsyncMultiplexImageCandidate] = []
+  @State private var currentUsingCandidates: [AsyncMultiplexImageCandidate] = []
   @State private var item: ResultContainer.Item?
 
   let viewModel: _AsyncMultiplexImageViewModel
@@ -231,6 +231,8 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
           let candidates = urls.enumerated().map { i, e in
             AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))
           }
+          
+          self.currentUsingCandidates = candidates
 
           // start download
 
@@ -260,7 +262,7 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
       .clipped()
       .onDisappear { 
         Task {
-          await downloader.deprioritize(candidates: candidates)
+          await downloader.deprioritize(candidates: currentUsingCandidates)
         }
       }
 
