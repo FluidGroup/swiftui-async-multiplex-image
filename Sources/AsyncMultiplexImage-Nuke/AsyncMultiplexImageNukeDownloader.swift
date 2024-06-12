@@ -16,9 +16,10 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
     self.debugDelay = debugDelay
   }
 
-  public func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws
-    -> UIImage
-  {
+  public func download(
+    candidate: AsyncMultiplexImageCandidate,
+    displaySize: CGSize
+  ) async throws -> UIImage {
 
     #if DEBUG
 
