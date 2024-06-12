@@ -33,10 +33,6 @@ public struct AsyncMultiplexImageNuke: View {
         }
       }
     }
-    .background(
-      Rectangle()
-        .foregroundColor(Color.init(.displayP3, white: 0.9, opacity: 1))
-    )
   }
 
 }
