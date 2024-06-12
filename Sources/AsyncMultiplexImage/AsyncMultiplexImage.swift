@@ -74,9 +74,11 @@ public final class DownloadManager {
 
 }
 
-public protocol AsyncMultiplexImageDownloader {
+public protocol AsyncMultiplexImageDownloader: Actor {
 
   func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> UIImage
+  
+  func deprioritize(candidates: some Sequence<AsyncMultiplexImageCandidate>)
 }
 
 public enum AsyncMultiplexImagePhase {
@@ -153,8 +155,7 @@ final class _AsyncMultiplexImageViewModel: ObservableObject {
 
 }
 
-private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View
-{
+private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
 
   private struct UpdateTrigger: Equatable {
     let size: CGSize
@@ -233,10 +234,10 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
 
           // start download
 
-          let currentTask = Task { @MainActor in
+          let currentTask = Task.detached {
             // this instance will be alive until finish
             let container = ResultContainer()
-            let stream = await container.make(
+            let stream = await container.makeStream(
               candidates: candidates,
               downloader: downloader,
               displaySize: newSize
@@ -244,7 +245,9 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
 
             do {
               for try await item in stream {
-                self.item = item
+                await MainActor.run {
+                  self.item = item
+                }
               }
             } catch {
               // FIXME: Error handling
@@ -255,6 +258,11 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
         }
       )
       .clipped()
+      .onDisappear { 
+        Task {
+          await downloader.deprioritize(candidates: candidates)
+        }
+      }
 
     }
   }
@@ -267,30 +275,28 @@ actor ResultContainer {
     case progress(UIImage)
     case final(UIImage)
   }
+  
+  private var lastCandidate: AsyncMultiplexImageCandidate? = nil
 
-  var lastCandidate: AsyncMultiplexImageCandidate? = nil
-
-  var idealImageTask: Task<Void, Never>?
-  var progressImagesTask: Task<Void, Never>?
+  private var idealImageTask: Task<Void, Never>?
+  private var progressImagesTask: Task<Void, Never>?    
 
   deinit {
     idealImageTask?.cancel()
     progressImagesTask?.cancel()
   }
-
-  func make<Downloader: AsyncMultiplexImageDownloader>(
+  
+  func makeStream<Downloader: AsyncMultiplexImageDownloader>(
     candidates: [AsyncMultiplexImageCandidate],
     downloader: Downloader,
     displaySize: CGSize
   ) -> AsyncThrowingStream<Item, Error> {
 
     Log.debug(.`generic`, "Load: \(candidates.map { $0.urlRequest })")
+    
+    return .init { [self] continuation in
 
-    return .init { continuation in
-
-      continuation.onTermination = { [weak self] termination in
-
-        guard let self else { return }
+      continuation.onTermination = { [self] termination in
 
         switch termination {
         case .finished, .cancelled:

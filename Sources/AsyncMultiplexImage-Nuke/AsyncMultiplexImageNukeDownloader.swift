@@ -3,10 +3,12 @@ import Foundation
 import Nuke
 import SwiftUI
 
-public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
+public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
 
   public let pipeline: ImagePipeline
   public let debugDelay: TimeInterval
+  
+  private var taskMap: [AsyncMultiplexImageCandidate : AsyncImageTask] = [:]
 
   public init(
     pipeline: ImagePipeline,
@@ -27,8 +29,7 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
 
     #endif
 
-    let response = try await pipeline.image(
-      for: .init(
+    let task = pipeline.imageTask(with: .init(
         urlRequest: candidate.urlRequest,
         processors: [
           ImageProcessors.Resize(
@@ -41,8 +42,20 @@ public struct AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
         ]
       )
     )
-
-    return response
+    
+    taskMap[candidate] = task
+    
+    let result = try await task.image
+    
+    taskMap.removeValue(forKey: candidate)
+    
+    return result
   }
-
+  
+  public func deprioritize(candidates: some Sequence<AsyncMultiplexImageCandidate>) {
+    for candidate in candidates {
+      taskMap[candidate]?.priority = .low
+    }    
+  }  
+  
 }
