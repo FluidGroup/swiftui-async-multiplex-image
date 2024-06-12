@@ -23,6 +23,14 @@ dependencies: [
 ]
 ```
 
+## Starter
+
+```
+import AsyncMultiplexImage
+
+AsyncMultiplexImageNuke(image: .init(constant: URL(...)))
+```
+
 ## Usage
 
 1. Import the library:
