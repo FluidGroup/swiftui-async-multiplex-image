@@ -15,6 +15,7 @@
 		4B5AC66A2BB96A8D00641C3B /* SwiftUIHosting in Frameworks */ = {isa = PBXBuildFile; productRef = 4B5AC6692BB96A8D00641C3B /* SwiftUIHosting */; };
 		4B5AC66D2BB96AAB00641C3B /* MondrianLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 4B5AC66C2BB96AAB00641C3B /* MondrianLayout */; };
 		4B7E24F9296184E300E53388 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7E24F8296184E300E53388 /* AppDelegate.swift */; };
+		4BB403CD2C19F9A80033B5E7 /* List.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB403CC2C19F9A80033B5E7 /* List.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		4B57106028D0AC8000AA053C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4B57106728D0AC8C00AA053C /* swiftui-AsyncMultiplexImage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swiftui-AsyncMultiplexImage"; path = ..; sourceTree = "<group>"; };
 		4B7E24F8296184E300E53388 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4BB403CC2C19F9A80033B5E7 /* List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = List.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 				4B57105E28D0AC8000AA053C /* AsyncMultiplexImage_Demo.entitlements */,
 				4B57105F28D0AC8000AA053C /* Preview Content */,
 				4B7E24F8296184E300E53388 /* AppDelegate.swift */,
+				4BB403CC2C19F9A80033B5E7 /* List.swift */,
 			);
 			path = "AsyncMultiplexImage-Demo";
 			sourceTree = "<group>";
@@ -169,6 +172,7 @@
 			files = (
 				4B7E24F9296184E300E53388 /* AppDelegate.swift in Sources */,
 				4B57105B28D0AC7F00AA053C /* ContentView.swift in Sources */,
+				4BB403CD2C19F9A80033B5E7 /* List.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,7 +308,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
@@ -339,7 +343,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.3;

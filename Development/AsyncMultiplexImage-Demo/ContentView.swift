@@ -12,7 +12,7 @@ import Nuke
 import SwiftUI
 import SwiftUIHosting
 
-struct _SlowDownloader: AsyncMultiplexImageDownloader {
+actor _SlowDownloader: AsyncMultiplexImageDownloader {
 
   let pipeline: ImagePipeline
 
@@ -98,6 +98,7 @@ struct ContentView: View {
           NavigationLink("UIKit") {
             UIKitContentViewRepresentable()
           }
+          NavigationLink("SwiftUI List", destination: { UsingList() })
         }
         .navigationTitle("Multiplex Image")
       }

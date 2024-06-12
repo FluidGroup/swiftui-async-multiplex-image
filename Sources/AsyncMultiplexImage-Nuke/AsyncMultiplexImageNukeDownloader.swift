@@ -5,6 +5,8 @@ import SwiftUI
 
 public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
 
+  public static let `shared` = AsyncMultiplexImageNukeDownloader(pipeline: .shared, debugDelay: 0)
+
   public let pipeline: ImagePipeline
   public let debugDelay: TimeInterval
   
@@ -42,7 +44,11 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
         ]
       )
     )
-    
+
+    for task in taskMap.values {
+      task.priority = .low
+    }
+
     taskMap[candidate] = task
     
     let result = try await task.image
@@ -51,11 +57,5 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
     
     return result
   }
-  
-  public func deprioritize(candidates: some Sequence<AsyncMultiplexImageCandidate>) {
-    for candidate in candidates {
-      taskMap[candidate]?.priority = .low
-    }    
-  }  
   
 }

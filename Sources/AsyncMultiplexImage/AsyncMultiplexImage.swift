@@ -77,8 +77,7 @@ public final class DownloadManager {
 public protocol AsyncMultiplexImageDownloader: Actor {
 
   func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> UIImage
-  
-  func deprioritize(candidates: some Sequence<AsyncMultiplexImageCandidate>)
+
 }
 
 public enum AsyncMultiplexImagePhase {
@@ -260,12 +259,7 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
         }
       )
       .clipped()
-      .onDisappear { 
-        Task {
-          await downloader.deprioritize(candidates: currentUsingCandidates)
-        }
-      }
-
+    
     }
   }
 
