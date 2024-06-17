@@ -45,10 +45,6 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
       )
     )
 
-    for task in taskMap.values {
-      task.priority = .low
-    }
-
     taskMap[candidate] = task
     
     let result = try await task.image
