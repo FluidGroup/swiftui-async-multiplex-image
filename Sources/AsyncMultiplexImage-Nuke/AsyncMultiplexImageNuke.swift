@@ -12,7 +12,7 @@ public struct AsyncMultiplexImageNuke: View {
   public var body: some View {
     AsyncMultiplexImage(
       multiplexImage: image,
-      downloader: AsyncMultiplexImageNukeDownloader(pipeline: .shared, debugDelay: 0)
+      downloader: AsyncMultiplexImageNukeDownloader.shared
     ) { phase in
       Group {
         switch phase {

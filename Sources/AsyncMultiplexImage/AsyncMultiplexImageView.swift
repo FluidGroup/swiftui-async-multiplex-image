@@ -192,7 +192,7 @@ open class AsyncMultiplexImageView: UIView {
     let currentTask = Task { [downloader, capturedImage = image] in
       // this instance will be alive until finish
       let container = ResultContainer()
-      let stream = await container.make(
+      let stream = await container.makeStream(
         candidates: candidates,
         downloader: downloader,
         displaySize: newSize
