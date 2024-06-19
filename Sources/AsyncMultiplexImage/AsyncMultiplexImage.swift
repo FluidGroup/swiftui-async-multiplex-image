@@ -76,7 +76,8 @@ public final class DownloadManager {
 
 public protocol AsyncMultiplexImageDownloader: Actor {
 
-  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> UIImage
+  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws
+    -> UIImage
 
 }
 
@@ -94,25 +95,44 @@ public struct AsyncMultiplexImageCandidate: Hashable {
 
 }
 
+public enum ImageRepresentation: Equatable {
+  case remote(MultiplexImage)
+  case loaded(Image)
+}
 
 public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
 
-  private let multiplexImage: MultiplexImage
+  private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
   private let content: (AsyncMultiplexImagePhase) -> Content
   private let clearsContentBeforeDownload: Bool
   // sharing
   @StateObject private var viewModel: _AsyncMultiplexImageViewModel = .init()
 
+  // convenience init
   public init(
     multiplexImage: MultiplexImage,
     downloader: Downloader,
     clearsContentBeforeDownload: Bool = true,
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
+    self.init(
+      imageRepresentation: .remote(multiplexImage),
+      downloader: downloader,
+      clearsContentBeforeDownload: clearsContentBeforeDownload,
+      content: content
+    )
+  }
+
+  public init(
+    imageRepresentation: ImageRepresentation,
+    downloader: Downloader,
+    clearsContentBeforeDownload: Bool = true,
+    @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
+  ) {
 
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
-    self.multiplexImage = multiplexImage
+    self.imageRepresentation = imageRepresentation
     self.downloader = downloader
     self.content = content
 
@@ -122,7 +142,7 @@ public struct AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImage
     _AsyncMultiplexImage(
       viewModel: viewModel,
       clearsContentBeforeDownload: clearsContentBeforeDownload,
-      multiplexImage: multiplexImage,
+      imageRepresentation: imageRepresentation,
       downloader: downloader,
       content: content
     )
@@ -154,19 +174,21 @@ final class _AsyncMultiplexImageViewModel: ObservableObject {
 
 }
 
-private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View {
+private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexImageDownloader>: View
+{
 
   private struct UpdateTrigger: Equatable {
     let size: CGSize
-    let image: MultiplexImage
+    let image: ImageRepresentation
   }
 
   @State private var currentUsingCandidates: [AsyncMultiplexImageCandidate] = []
-  @State private var item: ResultContainer.Item?
+
+  @State private var item: ResultContainer.ItemSwiftUI?
 
   let viewModel: _AsyncMultiplexImageViewModel
 
-  private let multiplexImage: MultiplexImage
+  private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
   private let content: (AsyncMultiplexImagePhase) -> Content
   private let clearsContentBeforeDownload: Bool
@@ -174,14 +196,14 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
   public init(
     viewModel: _AsyncMultiplexImageViewModel,
     clearsContentBeforeDownload: Bool,
-    multiplexImage: MultiplexImage,
+    imageRepresentation: ImageRepresentation,
     downloader: Downloader,
     @ViewBuilder content: @escaping (AsyncMultiplexImagePhase) -> Content
   ) {
 
     self.viewModel = viewModel
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
-    self.multiplexImage = multiplexImage
+    self.imageRepresentation = imageRepresentation
     self.downloader = downloader
     self.content = content
   }
@@ -195,9 +217,9 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
           case .none:
             return .empty
           case .some(.progress(let image)):
-            return .progress(.init(uiImage: image).renderingMode(.original))
+            return .progress(image)
           case .some(.final(let image)):
-            return .success(.init(uiImage: image).renderingMode(.original))
+            return .success(image)
           }
         }()
       )
@@ -205,7 +227,7 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
       .onChangeWithPrevious(
         of: UpdateTrigger(
           size: proxy.size,
-          image: multiplexImage
+          image: imageRepresentation
         ),
         emitsInitial: true,
         perform: { trigger, _ in
@@ -224,42 +246,53 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
             }
           }
 
-          // making new candidates
-          let urls = multiplexImage._urlsProvider(newSize)
+          switch trigger.image {
+          case .remote(let multiplexImage):
 
-          let candidates = urls.enumerated().map { i, e in
-            AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))
-          }
-          
-          self.currentUsingCandidates = candidates
+            // making new candidates
+            let urls = multiplexImage._urlsProvider(newSize)
 
-          // start download
-
-          let currentTask = Task.detached {
-            // this instance will be alive until finish
-            let container = ResultContainer()
-            let stream = await container.makeStream(
-              candidates: candidates,
-              downloader: downloader,
-              displaySize: newSize
-            )
-
-            do {
-              for try await item in stream {
-                await MainActor.run {
-                  self.item = item
-                }
-              }
-            } catch {
-              // FIXME: Error handling
+            let candidates = urls.enumerated().map { i, e in
+              AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))
             }
+
+            self.currentUsingCandidates = candidates
+
+            // start download
+
+            let currentTask = Task.detached {
+              // this instance will be alive until finish
+              let container = ResultContainer()
+              let stream = await container.makeStream(
+                candidates: candidates,
+                downloader: downloader,
+                displaySize: newSize
+              )
+
+              do {
+                for try await item in stream {
+                  await MainActor.run {
+                    self.item = item.swiftUI
+                  }
+                }
+              } catch {
+                // FIXME: Error handling
+              }
+            }
+
+            viewModel.registerCurrentTask(currentTask)
+
+          case .loaded(let image):
+
+            viewModel.cancelCurrentTask()
+
+            self.item = .final(image)
           }
 
-          viewModel.registerCurrentTask(currentTask)
         }
       )
       .clipped()
-    
+
     }
   }
 
@@ -270,18 +303,32 @@ actor ResultContainer {
   enum Item {
     case progress(UIImage)
     case final(UIImage)
+
+    var swiftUI: ItemSwiftUI {
+      switch self {
+      case .progress(let image):
+        return .progress(.init(uiImage: image).renderingMode(.original))
+      case .final(let image):
+        return .final(.init(uiImage: image).renderingMode(.original))
+      }
+    }
   }
-  
+
+  enum ItemSwiftUI {
+    case progress(Image)
+    case final(Image)
+  }
+
   private var lastCandidate: AsyncMultiplexImageCandidate? = nil
 
   private var idealImageTask: Task<Void, Never>?
-  private var progressImagesTask: Task<Void, Never>?    
+  private var progressImagesTask: Task<Void, Never>?
 
   deinit {
     idealImageTask?.cancel()
     progressImagesTask?.cancel()
   }
-  
+
   func makeStream<Downloader: AsyncMultiplexImageDownloader>(
     candidates: [AsyncMultiplexImageCandidate],
     downloader: Downloader,
@@ -289,7 +336,7 @@ actor ResultContainer {
   ) -> AsyncThrowingStream<Item, Error> {
 
     Log.debug(.`generic`, "Load: \(candidates.map { $0.urlRequest })")
-    
+
     return .init { [self] continuation in
 
       continuation.onTermination = { [self] termination in

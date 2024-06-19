@@ -3,15 +3,15 @@ import SwiftUI
 
 public struct AsyncMultiplexImageNuke: View {
 
-  public let image: MultiplexImage
+  public let imageRepresentation: ImageRepresentation
 
-  public init(image: MultiplexImage) {
-    self.image = image
+  public init(imageRepresentation: ImageRepresentation) {
+    self.imageRepresentation = imageRepresentation
   }
 
   public var body: some View {
     AsyncMultiplexImage(
-      multiplexImage: image,
+      imageRepresentation: imageRepresentation,
       downloader: AsyncMultiplexImageNukeDownloader.shared
     ) { phase in
       Group {
@@ -39,11 +39,19 @@ public struct AsyncMultiplexImageNuke: View {
 
 #Preview {
   AsyncMultiplexImageNuke(
-    image: .init(
-      constant: URL(
-        string:
-          "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
-      )!
+    imageRepresentation: .remote(
+      .init(
+        constant: URL(
+          string:
+            "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
+        )!
+      )
     )
+  )
+}
+
+#Preview {
+  AsyncMultiplexImageNuke(
+    imageRepresentation: .loaded(Image(systemName: "photo"))
   )
 }
