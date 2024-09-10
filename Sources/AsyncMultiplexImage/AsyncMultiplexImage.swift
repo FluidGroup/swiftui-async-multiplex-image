@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import SwiftUISupport
+import SwiftUISupportBackport
 import os.log
 
 enum Log {
