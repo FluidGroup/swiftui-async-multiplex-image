@@ -96,6 +96,8 @@ struct BookAlign: View, PreviewProvider {
               .overlay(Text("Done"))
           case .failure(let error):
             Text("Error")
+          @unknown default:
+            EmptyView()
           }
         }
       }

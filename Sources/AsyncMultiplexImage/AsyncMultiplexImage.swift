@@ -88,7 +88,7 @@ public enum AsyncMultiplexImagePhase {
   case failure(Error)
 }
 
-public struct AsyncMultiplexImageCandidate: Hashable {
+public struct AsyncMultiplexImageCandidate: Hashable, Sendable {
 
   public let index: Int
   public let urlRequest: URLRequest
