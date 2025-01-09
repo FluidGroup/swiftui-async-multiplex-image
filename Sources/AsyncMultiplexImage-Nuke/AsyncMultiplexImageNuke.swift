@@ -69,6 +69,7 @@ public struct AsyncMultiplexImageNuke: View {
     )
     .frame(width: 100, height: 100)
     .rotationEffect(.degrees(10))
+    .clipped(antialiased: true)
     
     AsyncMultiplexImageNuke(
       imageRepresentation: .remote(

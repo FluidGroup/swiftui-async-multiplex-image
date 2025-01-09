@@ -291,8 +291,7 @@ private struct _AsyncMultiplexImage<Content: View, Downloader: AsyncMultiplexIma
 
         }
       )
-      .clipShape(Rectangle(), style: .init(antialiased: true))
-
+      .clipped(antialiased: true)
 
     }
   }
