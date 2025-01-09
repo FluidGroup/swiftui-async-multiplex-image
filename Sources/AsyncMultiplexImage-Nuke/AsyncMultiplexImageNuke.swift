@@ -27,7 +27,7 @@ public struct AsyncMultiplexImageNuke: View {
           image
             .resizable()
             .scaledToFill()
-            .transition(.opacity.animation(.bouncy))
+            .transition(.opacity.animation(.bouncy))          
         case .failure:
           EmptyView()
         }
@@ -48,6 +48,55 @@ public struct AsyncMultiplexImageNuke: View {
       )
     )
   )
+}
+
+#Preview("Rotating") {
+  HStack {
+    
+    Rectangle()
+      .frame(width: 100, height: 100)
+      .rotationEffect(.degrees(10))
+    
+    AsyncMultiplexImageNuke(
+      imageRepresentation: .remote(
+        .init(
+          constant: URL(
+            string:
+              "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
+          )!
+        )
+      )
+    )
+    .frame(width: 100, height: 100)
+    .rotationEffect(.degrees(10))
+    .clipped(antialiased: true)
+    
+    AsyncMultiplexImageNuke(
+      imageRepresentation: .remote(
+        .init(
+          constant: URL(
+            string:
+              "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
+          )!
+        )
+      )
+    )
+    .frame(width: 100, height: 100)
+    .rotationEffect(.degrees(20))
+    
+    AsyncMultiplexImageNuke(
+      imageRepresentation: .remote(
+        .init(
+          constant: URL(
+            string:
+              "https://images.unsplash.com/photo-1492446845049-9c50cc313f00?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8"
+          )!
+        )
+      )
+    )
+    .frame(width: 100, height: 100)
+    .rotationEffect(.degrees(30))
+  }
 }
 
 #Preview {
