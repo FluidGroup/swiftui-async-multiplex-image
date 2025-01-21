@@ -1,3 +1,5 @@
+import AsyncMultiplexImage
+import AsyncMultiplexImage_Nuke
 //
 //  List.swift
 //  AsyncMultiplexImage-Demo
@@ -5,26 +7,33 @@
 //  Created by Muukii on 2024/06/13.
 //
 import SwiftUI
-import AsyncMultiplexImage
-import AsyncMultiplexImage_Nuke
 
 struct UsingList: View {
 
   @State var items: [Entity] = Entity.batch()
 
   var body: some View {
-    List {
-      ForEach(items) { entity in
-        if entity.id == items.last?.id {
-          Cell(entity: entity)
-            .onAppear {
-              Task {
-                let newItems = await Entity.delayBatch()
-                items.append(contentsOf: newItems)
+    ScrollView {
+      LazyVGrid(
+        columns: [
+          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 16),
+          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 16),
+          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 16),
+          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 16),
+        ], spacing: 16
+      ) {
+        ForEach(items) { entity in
+          if entity.id == items.last?.id {
+            Cell(entity: entity)
+              .onAppear {
+                Task {
+                  let newItems = await Entity.delayBatch()
+                  items.append(contentsOf: newItems)
+                }
               }
-            }
-        } else {
-          Cell(entity: entity)
+          } else {
+            Cell(entity: entity)
+          }
         }
       }
     }
@@ -33,11 +42,11 @@ struct UsingList: View {
 }
 
 #Preview {
-  ContentView()
+  UsingList()
 }
 
 let imageURLString =
-"https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?q=80&w=2487&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  "https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?q=80&w=2487&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 
 struct Cell: View {
 
@@ -45,8 +54,8 @@ struct Cell: View {
 
   var body: some View {
     VStack {
-      AsyncMultiplexImageNuke(image: entity.image)
-        .frame(height: 200)
+      AsyncMultiplexImageNuke(imageRepresentation: .remote(entity.image))
+        .frame(height: 100)
       HStack {
         Image(systemName: "globe")
           .imageScale(.large)
@@ -76,14 +85,14 @@ struct Entity: Identifiable {
 
   static func batch() -> [Self] {
     (0..<100).map { _ in
-        .make()
+      .make()
     }
   }
 
   static nonisolated func delayBatch() async -> [Self] {
     try? await Task.sleep(nanoseconds: 1_000_000_000)
     return (0..<100).map { _ in
-        .make()
+      .make()
     }
   }
 }
