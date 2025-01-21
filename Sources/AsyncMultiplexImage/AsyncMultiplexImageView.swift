@@ -191,7 +191,8 @@ open class AsyncMultiplexImageView: UIView {
       targetSize: newSize,
       displayScale: UIScreen.main.scale
     )
-    let urls = image._urlsProvider(context)
+    
+    let urls = image.makeURLs(context: context)
 
     let candidates = urls.enumerated().map { i, e in
       AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))

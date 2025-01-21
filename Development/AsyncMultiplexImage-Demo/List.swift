@@ -7,19 +7,28 @@ struct StressGrid<Cell: CellType>: View {
   @State var items: [Entity] = Entity.batch()
 
   var body: some View {
-    ScrollView {
-      LazyVGrid(
-        columns: [
-          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
-          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
-          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
-          .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
-        ], spacing: 2
-      ) {
-        ForEach(items) { entity in
-          Cell(entity: entity)            
+    GeometryReader { proxy in
+      ScrollView {
+        LazyVGrid(
+          columns: [
+            .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
+            .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
+            .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
+            .init(.flexible(minimum: 0, maximum: .infinity), spacing: 2),
+          ], spacing: 2
+        ) {
+          ForEach(items) { entity in
+            Cell(entity: entity)            
+          }
         }
       }
+      .onPreferenceChange(AnchorPreferenceKey.self, perform: { v in
+        guard let v = v else {
+          return
+        }
+        let bounds = proxy[v]
+        print(bounds)
+      })
     }
   }
 

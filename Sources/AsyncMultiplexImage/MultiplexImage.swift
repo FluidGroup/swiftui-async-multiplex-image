@@ -25,7 +25,7 @@ public struct MultiplexImage: Hashable, Sendable {
 
   public let identifier: String
 
-  let _urlsProvider: @Sendable (borrowing Context) -> [URL]
+  private let _urlsProvider: @Sendable (borrowing Context) -> [URL]
 
   /**
     - Parameters:
@@ -43,7 +43,11 @@ public struct MultiplexImage: Hashable, Sendable {
   public init(identifier: String, urls: [URL]) {
     self.init(identifier: identifier, urlsProvider: { _ in urls })
   }
-
+  
+  func makeURLs(context: borrowing Context) -> [URL] {
+    _urlsProvider(context)
+  }
+  
 }
 
 // MARK: convenience init
