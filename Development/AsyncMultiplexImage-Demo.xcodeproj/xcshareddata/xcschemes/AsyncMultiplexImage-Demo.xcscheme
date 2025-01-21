@@ -53,7 +53,7 @@
          <EnvironmentVariable
             key = "ASYNC_MULTIPLEX_IMAGE_LOG_ENABLED"
             value = "1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

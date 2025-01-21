@@ -59,23 +59,9 @@ struct ContentView: View {
                   identifier: basePhotoURLString,
                   urls: buildURLs(basePhotoURLString)
                 ),
-                downloader: _SlowDownloader(pipeline: .shared)
-              ) { phase in
-                switch phase {
-                case .empty:
-                  Text("Loading")
-                case .progress(let image):
-                  image
-                    .resizable()
-                    .scaledToFill()
-                case .success(let image):
-                  image
-                    .resizable()
-                    .scaledToFill()
-                case .failure(let error):
-                  Text("Error")
-                }
-              }
+                downloader: _SlowDownloader(pipeline: .shared),
+                content: AsyncMultiplexImageBasicContent()
+              )
 
               HStack {
                 Button("1") {
@@ -98,7 +84,10 @@ struct ContentView: View {
           NavigationLink("UIKit") {
             UIKitContentViewRepresentable()
           }
-          NavigationLink("SwiftUI List", destination: { UsingList() })
+          
+          NavigationLink("Stress 1", destination: { StressGrid<Cell_1>() })
+          
+          NavigationLink("Stress 2", destination: { StressGrid<Cell_2>() })
         }
         .navigationTitle("Multiplex Image")
       }

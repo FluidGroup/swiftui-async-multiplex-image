@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MultiplexImage: Hashable {
+public struct MultiplexImage: Hashable, Sendable {
 
   public static func == (lhs: MultiplexImage, rhs: MultiplexImage) -> Bool {
     lhs.identifier == rhs.identifier
@@ -12,11 +12,16 @@ public struct MultiplexImage: Hashable {
 
   public let identifier: String
 
-  private(set) var _urlsProvider: @MainActor (CGSize) -> [URL]
+  private(set) var _urlsProvider: @Sendable (CGSize) -> [URL]
 
+  /**
+    - Parameters:
+      - identifier: The unique identifier of the image.
+      - urlsProvider: The provider of the image URLs as the first item is the top priority.
+   */
   public init(
     identifier: String,
-    urlsProvider: @escaping @MainActor (CGSize) -> [URL]
+    urlsProvider: @escaping @Sendable (CGSize) -> [URL]
   ) {
     self.identifier = identifier
     self._urlsProvider = urlsProvider
