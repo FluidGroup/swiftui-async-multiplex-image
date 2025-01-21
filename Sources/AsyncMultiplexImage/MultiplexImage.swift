@@ -1,6 +1,19 @@
 import Foundation
 
 public struct MultiplexImage: Hashable, Sendable {
+  
+  public struct Context: ~Copyable {
+    public let targetSize: CGSize
+    public let displayScale: CGFloat
+    
+    init(
+      targetSize: consuming CGSize,
+      displayScale: consuming CGFloat
+    ) {
+      self.targetSize = targetSize
+      self.displayScale = displayScale
+    }
+  }
 
   public static func == (lhs: MultiplexImage, rhs: MultiplexImage) -> Bool {
     lhs.identifier == rhs.identifier
@@ -12,7 +25,7 @@ public struct MultiplexImage: Hashable, Sendable {
 
   public let identifier: String
 
-  private(set) var _urlsProvider: @Sendable (CGSize) -> [URL]
+  let _urlsProvider: @Sendable (borrowing Context) -> [URL]
 
   /**
     - Parameters:
@@ -21,7 +34,7 @@ public struct MultiplexImage: Hashable, Sendable {
    */
   public init(
     identifier: String,
-    urlsProvider: @escaping @Sendable (CGSize) -> [URL]
+    urlsProvider: @escaping @Sendable (borrowing Context) -> [URL]
   ) {
     self.identifier = identifier
     self._urlsProvider = urlsProvider

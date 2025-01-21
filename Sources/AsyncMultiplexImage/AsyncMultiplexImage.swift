@@ -157,6 +157,8 @@ private struct _AsyncMultiplexImage<
   @State private var item: ResultContainer.ItemSwiftUI?
   @State private var task: Task<(), Never>?
   @State private var displaySize: CGSize = .zero
+  
+  @Environment(\.displayScale) var displayScale
 
   private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
@@ -235,7 +237,12 @@ private struct _AsyncMultiplexImage<
             let task = Task.detached {
 
               // making new candidates
-              let urls = multiplexImage._urlsProvider(newSize)
+              let context = await MultiplexImage.Context(
+                targetSize: newSize,
+                displayScale: displayScale
+              )
+              
+              let urls = multiplexImage._urlsProvider(context)
 
               let candidates = urls.enumerated().map { i, e in
                 AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))
