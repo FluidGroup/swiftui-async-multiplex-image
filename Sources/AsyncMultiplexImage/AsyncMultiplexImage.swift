@@ -162,9 +162,8 @@ private struct _AsyncMultiplexImage<
   }
 
   @State private var item: ResultContainer.ItemSwiftUI?
-  @State private var displaySize: CGSize = .zero
-  
-//  @Environment(\.displayScale) var displayScale
+  @State private var displaySize: CGSize = .zero  
+  @Environment(\.displayScale) var displayScale
 
   private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
@@ -233,12 +232,13 @@ private struct _AsyncMultiplexImage<
           switch imageRepresentation {
           case .remote(let multiplexImage):
                                   
+            let displayScale = self.displayScale
             let candidates = await pushBackground {               
               
               // making new candidates
               let context = MultiplexImage.Context(
                 targetSize: newSize,
-                displayScale: 1
+                displayScale: displayScale
               )
                             
               let urls = multiplexImage.makeURLs(context: context)
