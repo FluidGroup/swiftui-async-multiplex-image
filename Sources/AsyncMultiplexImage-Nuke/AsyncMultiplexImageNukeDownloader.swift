@@ -4,7 +4,7 @@ import Nuke
 import SwiftUI
 
 public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
-
+  
   public static let `shared` = AsyncMultiplexImageNukeDownloader(pipeline: .shared, debugDelay: 0)
 
   public let pipeline: ImagePipeline

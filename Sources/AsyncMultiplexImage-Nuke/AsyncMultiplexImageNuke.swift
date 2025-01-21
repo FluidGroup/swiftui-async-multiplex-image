@@ -12,27 +12,9 @@ public struct AsyncMultiplexImageNuke: View {
   public var body: some View {
     AsyncMultiplexImage(
       imageRepresentation: imageRepresentation,
-      downloader: AsyncMultiplexImageNukeDownloader.shared
-    ) { phase in
-      Group {
-        switch phase {
-        case .empty:
-          EmptyView()
-        case .progress(let image):
-          image
-            .resizable()
-            .scaledToFill()
-            .transition(.opacity.animation(.bouncy))
-        case .success(let image):
-          image
-            .resizable()
-            .scaledToFill()
-            .transition(.opacity.animation(.bouncy))          
-        case .failure:
-          EmptyView()
-        }
-      }
-    }
+      downloader: AsyncMultiplexImageNukeDownloader.shared,
+      content: AsyncMultiplexImageBasicContent()
+    )
   }
 
 }
@@ -52,11 +34,11 @@ public struct AsyncMultiplexImageNuke: View {
 
 #Preview("Rotating") {
   HStack {
-    
+
     Rectangle()
       .frame(width: 100, height: 100)
       .rotationEffect(.degrees(10))
-    
+
     AsyncMultiplexImageNuke(
       imageRepresentation: .remote(
         .init(
@@ -70,7 +52,7 @@ public struct AsyncMultiplexImageNuke: View {
     .frame(width: 100, height: 100)
     .rotationEffect(.degrees(10))
     .clipped(antialiased: true)
-    
+
     AsyncMultiplexImageNuke(
       imageRepresentation: .remote(
         .init(
@@ -83,7 +65,7 @@ public struct AsyncMultiplexImageNuke: View {
     )
     .frame(width: 100, height: 100)
     .rotationEffect(.degrees(20))
-    
+
     AsyncMultiplexImageNuke(
       imageRepresentation: .remote(
         .init(

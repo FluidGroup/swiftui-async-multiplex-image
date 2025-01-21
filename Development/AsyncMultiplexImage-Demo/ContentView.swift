@@ -45,65 +45,62 @@ actor _SlowDownloader: AsyncMultiplexImageDownloader {
 
 struct ContentView: View {
 
-  @State private var basePhotoURLString: String =
-    "https://images.unsplash.com/photo-1492446845049-9c50cc313f00"
-
   var body: some View {
     NavigationView {
       Form {
         Section {
           NavigationLink("SwiftUI") {
-            VStack {
-              AsyncMultiplexImage(
-                multiplexImage: .init(
-                  identifier: basePhotoURLString,
-                  urls: buildURLs(basePhotoURLString)
-                ),
-                downloader: _SlowDownloader(pipeline: .shared)
-              ) { phase in
-                switch phase {
-                case .empty:
-                  Text("Loading")
-                case .progress(let image):
-                  image
-                    .resizable()
-                    .scaledToFill()
-                case .success(let image):
-                  image
-                    .resizable()
-                    .scaledToFill()
-                case .failure(let error):
-                  Text("Error")
-                }
-              }
-
-              HStack {
-                Button("1") {
-                  basePhotoURLString =
-                    "https://images.unsplash.com/photo-1660668377331-da480e5339a0"
-                }
-                Button("2") {
-                  basePhotoURLString =
-                    "https://images.unsplash.com/photo-1658214764191-b002b517e9e5"
-                }
-                Button("3") {
-                  basePhotoURLString =
-                    "https://images.unsplash.com/photo-1587126396803-be14d33e49cf"
-                }
-              }
-            }
-            .padding()
-            .navigationTitle("SwiftUI")
+            SwitchingDemo()
+              .navigationTitle("SwiftUI")
           }
           NavigationLink("UIKit") {
             UIKitContentViewRepresentable()
           }
-          NavigationLink("SwiftUI List", destination: { UsingList() })
+          
+          NavigationLink("Stress 1", destination: { StressGrid<Cell_1>() })
+          
+          NavigationLink("Stress 2", destination: { StressGrid<Cell_2>() })
         }
         .navigationTitle("Multiplex Image")
       }
     }
   }
+}
+
+private struct SwitchingDemo: View {
+  
+  @State private var basePhotoURLString: String =
+  "https://images.unsplash.com/photo-1492446845049-9c50cc313f00"
+
+  var body: some View {
+    VStack {
+      AsyncMultiplexImage(
+        multiplexImage: .init(
+          identifier: basePhotoURLString,
+          urls: buildURLs(basePhotoURLString)
+        ),
+        downloader: _SlowDownloader(pipeline: .shared),
+        content: AsyncMultiplexImageBasicContent()
+      )
+      
+      HStack {
+        Button("1") {
+          basePhotoURLString =
+          "https://images.unsplash.com/photo-1660668377331-da480e5339a0"
+        }
+        Button("2") {
+          basePhotoURLString =
+          "https://images.unsplash.com/photo-1658214764191-b002b517e9e5"
+        }
+        Button("3") {
+          basePhotoURLString =
+          "https://images.unsplash.com/photo-1587126396803-be14d33e49cf"
+        }
+      }
+    }
+    .padding()
+  }
+
 }
 
 struct UIKitContentViewRepresentable: UIViewRepresentable {
