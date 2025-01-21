@@ -46,7 +46,7 @@ struct UsingList: View {
 }
 
 let imageURLString =
-  "https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?q=80&w=2487&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  "https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 
 struct Cell: View {
 
