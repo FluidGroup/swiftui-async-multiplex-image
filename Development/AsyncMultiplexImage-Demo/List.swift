@@ -21,14 +21,7 @@ struct StressGrid<Cell: CellType>: View {
             Cell(entity: entity)            
           }
         }
-      }
-      .onPreferenceChange(AnchorPreferenceKey.self, perform: { v in
-        guard let v = v else {
-          return
-        }
-        let bounds = proxy[v]
-        print(bounds)
-      })
+      }      
     }
   }
 

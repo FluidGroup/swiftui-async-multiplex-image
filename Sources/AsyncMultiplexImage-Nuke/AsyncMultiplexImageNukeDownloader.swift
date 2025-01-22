@@ -10,8 +10,6 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
   public let pipeline: ImagePipeline
   public let debugDelay: TimeInterval
   
-  private var taskMap: [AsyncMultiplexImageCandidate : AsyncImageTask] = [:]
-
   public init(
     pipeline: ImagePipeline,
     debugDelay: TimeInterval
@@ -44,13 +42,9 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
         ]
       )
     )
-
-    taskMap[candidate] = task
     
     let result = try await task.image
-    
-    taskMap.removeValue(forKey: candidate)
-    
+        
     return result
   }
   
