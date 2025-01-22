@@ -286,7 +286,7 @@ private struct _AsyncMultiplexImage<
             
           }
         } onCancel: { 
-          print("cancel")
+          // handle cancel
         }             
         
       })     
