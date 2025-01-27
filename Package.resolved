@@ -1,4 +1,5 @@
 {
+  "originHash" : "9d5b7a055dcb86f199dc58cfa00698ea76355065e6b24365c8c3b8a8fb093663",
   "pins" : [
     {
       "identity" : "nuke",
@@ -14,10 +15,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/FluidGroup/swiftui-support.git",
       "state" : {
-        "revision" : "266e052494f8b7432374ad19a4bd31877cf54640",
-        "version" : "0.10.0"
+        "revision" : "10b463fc241552c4c6668700c37d4112ae926fe5",
+        "version" : "0.12.0"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
