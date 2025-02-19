@@ -60,6 +60,10 @@ struct ContentView: View {
           NavigationLink("Stress 1", destination: { StressGrid<Cell_1>() })
           
           NavigationLink("Stress 2", destination: { StressGrid<Cell_2>() })
+          
+          NavigationLink("Shrink", destination: {
+            BookShrink()
+          })
         }
         .navigationTitle("Multiplex Image")
       }
