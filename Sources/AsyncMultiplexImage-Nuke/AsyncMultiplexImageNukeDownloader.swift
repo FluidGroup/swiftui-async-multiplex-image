@@ -36,7 +36,7 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
             size: displaySize,
             unit: .points,
             contentMode: .aspectFill,
-            crop: false,
+            crop: true,
             upscale: false
           )
         ]
