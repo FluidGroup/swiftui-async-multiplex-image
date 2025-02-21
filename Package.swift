@@ -9,21 +9,14 @@ let package = Package(
     .iOS(.v16),
   ],
   products: [
-    // Products define the executables and libraries a package produces, and make them visible to other packages.
     .library(
       name: "AsyncMultiplexImage",
       targets: ["AsyncMultiplexImage"]
-    ),
-    
+    ),  
     .library(
       name: "AsyncMultiplexImage-Nuke",
       targets: ["AsyncMultiplexImage-Nuke"]
     ),
-    
-    .library(
-      name: "AsyncMultiplexImageDemo",
-      targets: ["AsyncMultiplexImageDemo"]
-    )
   ],
   dependencies: [
     .package(url: "https://github.com/kean/Nuke.git", from: "12.0.0"),
@@ -37,10 +30,6 @@ let package = Package(
     .target(
       name: "AsyncMultiplexImage-Nuke",
       dependencies: ["Nuke", "AsyncMultiplexImage"]
-    ),
-    .target(
-      name: "AsyncMultiplexImageDemo",
-      dependencies: ["AsyncMultiplexImage", "AsyncMultiplexImage-Nuke", "Nuke"]
     ),
     .testTarget(
       name: "AsyncMultiplexImageTests",
