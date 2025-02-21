@@ -4,7 +4,7 @@ import SwiftUISupportBackport
 import os.log
 
 enum Log {
-
+  
   static func debug(
     file: StaticString = #file,
     line: UInt = #line,
@@ -20,7 +20,7 @@ enum Log {
       "\(line.description)"
     )
   }
-
+  
   static func error(
     file: StaticString = #file,
     line: UInt = #line,
@@ -36,42 +36,42 @@ enum Log {
       "\(line.description)"
     )
   }
-
+  
 }
 
 extension OSLog {
-
+  
   @inline(__always)
   private static func makeOSLogInDebug(isEnabled: Bool = true, _ factory: () -> OSLog) -> OSLog {
-    #if DEBUG
-      if ProcessInfo.processInfo.environment["ASYNC_MULTIPLEX_IMAGE_LOG_ENABLED"] == "1" {
-        return factory()
-      } else {
-        return .disabled
-      }
-    #else
+#if DEBUG
+    if ProcessInfo.processInfo.environment["ASYNC_MULTIPLEX_IMAGE_LOG_ENABLED"] == "1" {
+      return factory()
+    } else {
       return .disabled
-    #endif
+    }
+#else
+    return .disabled
+#endif
   }
-
+  
   static let generic: OSLog = makeOSLogInDebug(isEnabled: false) {
     OSLog.init(subsystem: "app.muukii", category: "default")
   }
   static let view: OSLog = makeOSLogInDebug {
     OSLog.init(subsystem: "app.muukii", category: "SwiftUIVersion")
   }
-
+  
   static let uiKit: OSLog = makeOSLogInDebug {
     OSLog.init(subsystem: "app.muukii", category: "UIKitVersion")
   }
-
+  
 }
 
 public protocol AsyncMultiplexImageDownloader: Actor {
-
+  
   func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws
-    -> UIImage
-
+  -> UIImage
+  
 }
 
 public enum AsyncMultiplexImagePhase {
@@ -82,10 +82,10 @@ public enum AsyncMultiplexImagePhase {
 }
 
 public struct AsyncMultiplexImageCandidate: Hashable, Sendable {
-
+  
   public let index: Int
   public let urlRequest: URLRequest
-
+  
 }
 
 public enum ImageRepresentation: Equatable {
@@ -96,13 +96,13 @@ public enum ImageRepresentation: Equatable {
 public struct AsyncMultiplexImage<
   Content: AsyncMultiplexImageContent, Downloader: AsyncMultiplexImageDownloader
 >: View {
-
+  
   private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
   private let content: Content
-
+  
   private let clearsContentBeforeDownload: Bool
-
+  
   // convenience init
   public init(
     multiplexImage: MultiplexImage,
@@ -117,21 +117,21 @@ public struct AsyncMultiplexImage<
       content: content
     )
   }
-
+  
   public init(
     imageRepresentation: ImageRepresentation,
     downloader: Downloader,
     clearsContentBeforeDownload: Bool = true,
     content: Content
   ) {
-
+    
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
     self.imageRepresentation = imageRepresentation
     self.downloader = downloader
     self.content = content
-
+    
   }
-
+  
   public var body: some View {
     _AsyncMultiplexImage(
       clearsContentBeforeDownload: clearsContentBeforeDownload,
@@ -140,47 +140,47 @@ public struct AsyncMultiplexImage<
       content: content
     )
   }
-
-}
   
+}
+
 private struct _AsyncMultiplexImage<
   Content: AsyncMultiplexImageContent, Downloader: AsyncMultiplexImageDownloader
 >: View {
-
+  
   private struct UpdateTrigger: Equatable {
     let size: CGSize
     let image: ImageRepresentation
   }
-
+  
   @State private var item: ResultContainer.ItemSwiftUI?
   @State private var displaySize: CGSize = .zero  
   @Environment(\.displayScale) var displayScale
-
+  
   private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
   private let content: Content
   private let clearsContentBeforeDownload: Bool
-
+  
   public init(
     clearsContentBeforeDownload: Bool,
     imageRepresentation: ImageRepresentation,
     downloader: Downloader,
     content: Content
   ) {
-
+    
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
     self.imageRepresentation = imageRepresentation
     self.downloader = downloader
     self.content = content
   }
-
+  
   public var body: some View {
-
+    
     Color.clear
       .overlay(
         content.body(
           phase: {
-            switch item {
+            switch item?.phase {
             case .none:
               return .empty
             case .some(.progress(let image)):
@@ -199,96 +199,111 @@ private struct _AsyncMultiplexImage<
           displaySize = newValue
         }
       )
-      .task(id: UpdateTrigger(
-        size: displaySize,
-        image: imageRepresentation
-      ), { 
-        
-        await withTaskCancellationHandler { 
+      .task(
+        id: UpdateTrigger(
+          size: displaySize,
+          image: imageRepresentation
+        ),
+        {
           
-          let newSize = displaySize
-          
-          guard newSize.height > 0 && newSize.width > 0 else {
+          if let item,
+             case .final = item.phase,
+             item.source == imageRepresentation {
+            // already final item loaded
             return
           }
           
-          if clearsContentBeforeDownload {
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-              self.item = nil
+          await withTaskCancellationHandler { 
+            
+            let newSize = displaySize
+            
+            guard newSize.height > 0 && newSize.width > 0 else {
+              return
             }
-          }
-          
-          switch imageRepresentation {
-          case .remote(let multiplexImage):
-                                  
-            let displayScale = self.displayScale
-            let candidates = await pushBackground {               
+            
+            if clearsContentBeforeDownload {
+              var transaction = Transaction()
+              transaction.disablesAnimations = true
+              withTransaction(transaction) {
+                self.item = nil
+              }
+            }
+            
+            switch imageRepresentation {
+            case .remote(let multiplexImage):
               
-              // making new candidates
-              let context = MultiplexImage.Context(
-                targetSize: newSize,
-                displayScale: displayScale
+              let displayScale = self.displayScale
+              let candidates = await pushBackground {               
+                
+                // making new candidates
+                let context = MultiplexImage.Context(
+                  targetSize: newSize,
+                  displayScale: displayScale
+                )
+                
+                let urls = multiplexImage.makeURLs(context: context)
+                
+                let candidates = urls.enumerated().map { i, e in
+                  AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))
+                }
+                
+                return candidates
+              }
+              
+              guard Task.isCancelled == false else {
+                return
+              }
+              
+              let stream = await DownloadManager.shared.start(
+                source: multiplexImage,
+                candidates: candidates,
+                downloader: downloader,
+                displaySize: newSize
               )
-                            
-              let urls = multiplexImage.makeURLs(context: context)
               
-              let candidates = urls.enumerated().map { i, e in
-                AsyncMultiplexImageCandidate(index: i, urlRequest: .init(url: e))
+              guard Task.isCancelled == false else {
+                return
               }
               
-              return candidates
-            }
-            
-            guard Task.isCancelled == false else {
-              return
-            }
-            
-            let stream = await DownloadManager.shared.start(
-              source: multiplexImage,
-              candidates: candidates,
-              downloader: downloader,
-              displaySize: newSize
-            )
-            
-            guard Task.isCancelled == false else {
-              return
-            }
-            
-            do {
-              for try await item in stream {
-                
-                guard Task.isCancelled == false else {
-                  return
+              do {
+                for try await item in stream {
+                  
+                  guard Task.isCancelled == false else {
+                    return
+                  }
+                  
+                  await MainActor.run {
+                    self.item = .init(
+                      source: imageRepresentation,
+                      phase: item.swiftUI
+                    )
+                  }
                 }
-                
-                await MainActor.run {
-                  self.item = item.swiftUI
-                }
-              }
-            } catch {
-              // FIXME: Error handling
-            }                    
-            
-          case .loaded(let image):
-            
-            self.item = .final(image)
-            
-          }
-        } onCancel: { 
-          // handle cancel
-        }             
-        
-      })     
+              } catch {
+                // FIXME: Error handling
+              }                    
+              
+            case .loaded(let image):
+              
+              self.item = .init(
+                source: imageRepresentation,
+                phase: .final(image)
+              )
+              
+            }
+          } onCancel: { 
+            // handle cancel
+          }             
+          
+        })     
       .clipped(antialiased: true)
-//      .onDisappear { 
-//        self.task?.cancel()
-//        self.task = nil
-//      }
-
+    //      .onDisappear { 
+    //        self.task?.cancel()
+    //        self.task = nil
+    //      }
+    
   }
-
+  
 }
 
 private func pushBackground<Result>(task: @Sendable () -> sending Result) async -> sending Result {

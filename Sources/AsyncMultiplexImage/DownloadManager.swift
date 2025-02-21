@@ -7,10 +7,10 @@
 import SwiftUI
 
 actor DownloadManager {
-    
+  
   @MainActor
   static let shared = DownloadManager()
-        
+  
   private init() {}
   
   func start(
@@ -19,7 +19,7 @@ actor DownloadManager {
     downloader: any AsyncMultiplexImageDownloader,
     displaySize: CGSize
   ) async -> sending AsyncThrowingStream<ResultContainer.Item, any Error> {
-        
+    
     // this instance will be alive until finish
     let container = ResultContainer()
     
@@ -41,7 +41,7 @@ actor ResultContainer {
     case progress(UIImage)
     case final(UIImage)
     
-    var swiftUI: ItemSwiftUI {
+    var swiftUI: ItemSwiftUI.Phase {
       switch self {
       case .progress(let image):
         return .progress(.init(uiImage: image).renderingMode(.original))
@@ -51,9 +51,16 @@ actor ResultContainer {
     }
   }
   
-  enum ItemSwiftUI {
-    case progress(Image)
-    case final(Image)
+  struct ItemSwiftUI: Equatable {
+    
+    enum Phase: Equatable {
+      case progress(Image)
+      case final(Image)
+    }
+    
+    let source: ImageRepresentation
+    let phase: Phase
+    
   }
   
   private var referenceCount: UInt64 = 0
