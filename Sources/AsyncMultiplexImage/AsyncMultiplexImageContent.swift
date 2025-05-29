@@ -5,14 +5,14 @@ public protocol AsyncMultiplexImageContent {
   associatedtype Content: View
 
   @ViewBuilder
-  func body(phase: AsyncMultiplexImagePhase, previous: AsyncMultiplexImagePhase?) -> Content
+  func body(phase: AsyncMultiplexImagePhase) -> Content
 }
 
 public struct AsyncMultiplexImageBasicContent: AsyncMultiplexImageContent {
   
   public init() {}
   
-  public func body(phase: AsyncMultiplexImagePhase, previous: AsyncMultiplexImagePhase?) -> some View {
+  public func body(phase: AsyncMultiplexImagePhase) -> some View {
     switch phase {
     case .empty:
       Rectangle().fill(.clear)

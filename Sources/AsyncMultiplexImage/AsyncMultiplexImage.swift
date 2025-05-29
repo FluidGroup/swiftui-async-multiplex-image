@@ -187,7 +187,6 @@ private struct _AsyncMultiplexImage<
   }
   
   @State private var item: ResultContainer.ItemSwiftUI?
-  @State private var previousItem: ResultContainer.ItemSwiftUI?
   
   @State private var displaySize: CGSize = .zero  
   @Environment(\.displayScale) var displayScale
@@ -229,8 +228,7 @@ private struct _AsyncMultiplexImage<
     Color.clear
       .overlay(
         content.body(
-          phase: Self.phase(from: item),
-          previous: Self.phase(from: previousItem)
+          phase: Self.phase(from: item)
         )
         .frame(width: displaySize.width, height: displaySize.height)     
       )
@@ -267,7 +265,6 @@ private struct _AsyncMultiplexImage<
               var transaction = Transaction()
               transaction.disablesAnimations = true
               withTransaction(transaction) {
-                self.previousItem = self.item
                 self.item = nil
               }
             }
@@ -316,7 +313,6 @@ private struct _AsyncMultiplexImage<
                   }
                   
                   await MainActor.run {
-                    self.previousItem = self.item
                     self.item = .init(
                       representation: imageRepresentation,
                       phase: item.swiftUI
@@ -329,7 +325,6 @@ private struct _AsyncMultiplexImage<
               
             case .loaded(let image):
               
-              self.previousItem = self.item
               self.item = .init(
                 representation: imageRepresentation,
                 phase: .final(image, .local)
