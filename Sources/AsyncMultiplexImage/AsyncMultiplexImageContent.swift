@@ -5,23 +5,23 @@ public protocol AsyncMultiplexImageContent {
   associatedtype Content: View
 
   @ViewBuilder
-  func body(phase: AsyncMultiplexImagePhase) -> Content
+  func body(phase: AsyncMultiplexImagePhase, previous: AsyncMultiplexImagePhase?) -> Content
 }
 
 public struct AsyncMultiplexImageBasicContent: AsyncMultiplexImageContent {
   
   public init() {}
   
-  public func body(phase: AsyncMultiplexImagePhase) -> some View {
+  public func body(phase: AsyncMultiplexImagePhase, previous: AsyncMultiplexImagePhase?) -> some View {
     switch phase {
     case .empty:
       Rectangle().fill(.clear)
-    case .progress(let image):
+    case .progress(let image, _):
       image
         .resizable()
         .scaledToFill()
         .transition(.opacity.animation(.bouncy))
-    case .success(let image):
+    case .success(let image, _):
       image
         .resizable()
         .scaledToFill()

@@ -226,9 +226,9 @@ open class AsyncMultiplexImageView: UIView {
               let transition = CATransition()
               transition.duration = 0.13
               switch item {
-              case .progress(let image):
+              case .progress(let image, _):
                 imageView.image = image
-              case .final(let image):
+              case .final(let image, _):
                 imageView.image = image
               }
               self.layer.add(transition, forKey: "transition")

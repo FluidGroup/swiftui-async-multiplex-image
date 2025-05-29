@@ -21,7 +21,7 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
   public func download(
     candidate: AsyncMultiplexImageCandidate,
     displaySize: CGSize
-  ) async throws -> UIImage {
+  ) async throws -> DownloadResult {
 
     #if DEBUG
 
@@ -43,9 +43,29 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
       )
     )
     
-    let result = try await task.image
+    let begin = CACurrentMediaTime()
         
-    return result
+    let result = try await task.response
+    
+    let end = CACurrentMediaTime()
+    
+    let took = end - begin
+    
+    var isFromCache: Bool {
+      switch result.cacheType {
+      case .memory, .disk:
+        return true
+      default:
+        return false
+      }
+    }
+    
+    return .init(
+      image: result.image,
+      isFromCache: false,
+      time: took
+    )
+        
   }
   
 }
