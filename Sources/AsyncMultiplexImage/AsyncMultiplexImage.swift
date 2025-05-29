@@ -67,17 +67,51 @@ extension OSLog {
   
 }
 
+public struct DownloadResult: Sendable {
+  
+  public struct Metrics: Sendable, Equatable {
+    
+    public let isFromCache: Bool
+    public let time: TimeInterval
+    
+  }
+    
+  public let image: UIImage
+  public let metrics: Metrics
+    
+  public init(
+    image: UIImage,
+    isFromCache: Bool,
+    time: TimeInterval
+  ) { 
+    self.image = image
+    self.metrics = .init(
+      isFromCache: isFromCache,
+      time: time
+    )
+
+  }
+}
+
 public protocol AsyncMultiplexImageDownloader: Actor {
   
-  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws
-  -> UIImage
+  func download(
+    candidate: AsyncMultiplexImageCandidate,
+    displaySize: CGSize
+  ) async throws
+  -> DownloadResult
   
+}
+
+public enum Source: Equatable, Sendable {
+  case local
+  case remote(DownloadResult.Metrics)
 }
 
 public enum AsyncMultiplexImagePhase {
   case empty
-  case progress(Image)
-  case success(Image)
+  case progress(Image, Source)
+  case success(Image, Source)
   case failure(Error)
 }
 
@@ -153,6 +187,7 @@ private struct _AsyncMultiplexImage<
   }
   
   @State private var item: ResultContainer.ItemSwiftUI?
+  
   @State private var displaySize: CGSize = .zero  
   @Environment(\.displayScale) var displayScale
   
@@ -174,21 +209,26 @@ private struct _AsyncMultiplexImage<
     self.content = content
   }
   
+  private static func phase(from: ResultContainer.ItemSwiftUI?) -> AsyncMultiplexImagePhase {
+    
+    guard let from else {
+      return .empty
+    }
+    
+    switch from.phase {
+    case .progress(let image, let source):
+      return .progress(image, source)
+    case .final(let image, let source):
+      return .success(image, source)
+    }
+  }
+      
   public var body: some View {
     
     Color.clear
       .overlay(
         content.body(
-          phase: {
-            switch item?.phase {
-            case .none:
-              return .empty
-            case .some(.progress(let image)):
-              return .progress(image)
-            case .some(.final(let image)):
-              return .success(image)
-            }
-          }()
+          phase: Self.phase(from: item)
         )
         .frame(width: displaySize.width, height: displaySize.height)     
       )
@@ -208,7 +248,7 @@ private struct _AsyncMultiplexImage<
           
           if let item,
              case .final = item.phase,
-             item.source == imageRepresentation {
+             item.representation == imageRepresentation {
             // already final item loaded
             return
           }
@@ -274,7 +314,7 @@ private struct _AsyncMultiplexImage<
                   
                   await MainActor.run {
                     self.item = .init(
-                      source: imageRepresentation,
+                      representation: imageRepresentation,
                       phase: item.swiftUI
                     )
                   }
@@ -286,8 +326,8 @@ private struct _AsyncMultiplexImage<
             case .loaded(let image):
               
               self.item = .init(
-                source: imageRepresentation,
-                phase: .final(image)
+                representation: imageRepresentation,
+                phase: .final(image, .local)
               )
               
             }

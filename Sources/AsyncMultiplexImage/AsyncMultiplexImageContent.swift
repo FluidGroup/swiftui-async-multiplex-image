@@ -16,12 +16,12 @@ public struct AsyncMultiplexImageBasicContent: AsyncMultiplexImageContent {
     switch phase {
     case .empty:
       Rectangle().fill(.clear)
-    case .progress(let image):
+    case .progress(let image, _):
       image
         .resizable()
         .scaledToFill()
         .transition(.opacity.animation(.bouncy))
-    case .success(let image):
+    case .success(let image, _):
       image
         .resizable()
         .scaledToFill()

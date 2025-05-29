@@ -37,28 +37,28 @@ actor DownloadManager {
 
 actor ResultContainer {
   
-  enum Item {
-    case progress(UIImage)
-    case final(UIImage)
+  enum Item: Sendable {
+    case progress(UIImage, Source)
+    case final(UIImage, Source)
     
     var swiftUI: ItemSwiftUI.Phase {
       switch self {
-      case .progress(let image):
-        return .progress(.init(uiImage: image).renderingMode(.original))
-      case .final(let image):
-        return .final(.init(uiImage: image).renderingMode(.original))
+      case .progress(let image, let source):
+        return .progress(.init(uiImage: image).renderingMode(.original), source)
+      case .final(let image, let source):
+        return .final(.init(uiImage: image).renderingMode(.original), source)
       }
     }
   }
   
   struct ItemSwiftUI: Equatable {
-    
+         
     enum Phase: Equatable {
-      case progress(Image)
-      case final(Image)
+      case progress(Image, Source)
+      case final(Image, Source)
     }
     
-    let source: ImageRepresentation
+    let representation: ImageRepresentation
     let phase: Phase
     
   }
@@ -125,7 +125,7 @@ actor ResultContainer {
           Log.debug(.`generic`, "Loaded ideal")
           
           lastCandidate = idealCandidate
-          continuation.yield(.final(result))
+          continuation.yield(.final(result.image, .remote(result.metrics)))
         } catch {
           continuation.yield(with: .failure(error))
         }
@@ -171,7 +171,7 @@ actor ResultContainer {
             
             lastCandidate = idealCandidate
             
-            let yieldResult = continuation.yield(.progress(result))
+            let yieldResult = continuation.yield(.progress(result.image, .remote(result.metrics)))
             
             Log.debug(.`generic`, "Loaded progress image => \(candidate.index), \(yieldResult)")
           } catch {
