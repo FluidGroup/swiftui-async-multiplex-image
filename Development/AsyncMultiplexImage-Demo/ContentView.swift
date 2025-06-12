@@ -14,16 +14,14 @@ import SwiftUIHosting
 
 actor _SlowDownloader: AsyncMultiplexImageDownloader {
 
-  let pipeline: ImagePipeline
+  public let pipeline: ImagePipeline
 
   init(pipeline: ImagePipeline) {
     self.pipeline = pipeline
   }
-
-  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws
-    -> UIImage
-  {
-
+  
+  func download(candidate: AsyncMultiplexImageCandidate, displaySize: CGSize) async throws -> DownloadResult {
+        
     switch candidate.index {
     case 0:
       try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -36,9 +34,43 @@ actor _SlowDownloader: AsyncMultiplexImageDownloader {
     default:
       break
     }
-
-    let response = try await pipeline.image(for: .init(urlRequest: candidate.urlRequest))
-    return response
+    
+    let task = pipeline.imageTask(with: .init(
+      urlRequest: candidate.urlRequest,
+      processors: [
+        ImageProcessors.Resize(
+          size: displaySize,
+          unit: .points,
+          contentMode: .aspectFill,
+          crop: true,
+          upscale: false
+        )
+      ]
+    )
+    )
+    
+    let begin = CACurrentMediaTime()
+    
+    let result = try await task.response
+    
+    let end = CACurrentMediaTime()
+    
+    let took = end - begin
+    
+    var isFromCache: Bool {
+      switch result.cacheType {
+      case .memory, .disk:
+        return true
+      default:
+        return false
+      }
+    }
+    
+    return .init(
+      image: result.image,
+      isFromCache: false,
+      time: took
+    )
   }
 
 }
