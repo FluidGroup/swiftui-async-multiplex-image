@@ -4,7 +4,9 @@ public protocol AsyncMultiplexImageContent {
 
   associatedtype Content: View
 
-  @ViewBuilder
+  @ViewBuilder 
+  @MainActor
+  @preconcurrency 
   func body(phase: AsyncMultiplexImagePhase) -> Content
 }
 
