@@ -19,7 +19,7 @@ public struct AsyncMultiplexImageNuke: View {
 
 }
 
-#Preview {
+#Preview("1") {
   AsyncMultiplexImageNuke(
     imageRepresentation: .remote(
       .init(
@@ -30,6 +30,21 @@ public struct AsyncMultiplexImageNuke: View {
       )
     )
   )
+}
+
+#Preview("2") {
+  AsyncMultiplexImageNuke(
+    imageRepresentation: .remote(
+      .init(
+        constant: URL(
+          string:
+            "https://images.unsplash.com/photo-1759395162866-8a1b6237ad6a?q=80&w=2988&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        )!
+      )
+    )
+  )
+//  .aspectRatio(contentMode: .fill)
+  .padding()
 }
 
 #Preview("Rotating") {
