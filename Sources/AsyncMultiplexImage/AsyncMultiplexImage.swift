@@ -134,41 +134,62 @@ public struct AsyncMultiplexImage<
   private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
   private let content: Content
-  
+
   private let clearsContentBeforeDownload: Bool
-  
-  // convenience init
+  private let skipsFinalImageReload: Bool
+
+  /// Creates an async multiplex image view with a remote image source.
+  ///
+  /// - Parameters:
+  ///   - multiplexImage: The multiplex image configuration to load.
+  ///   - downloader: The downloader actor to use for fetching images.
+  ///   - clearsContentBeforeDownload: Whether to clear the content before starting a new download. Defaults to `true`.
+  ///   - skipsFinalImageReload: Whether to skip reloading when a final image is already loaded for the same representation. When `false` (default), images reload when display size or representation changes. Defaults to `false`.
+  ///   - content: A closure that builds the view content based on the current loading phase.
   public init(
     multiplexImage: MultiplexImage,
     downloader: Downloader,
     clearsContentBeforeDownload: Bool = true,
+    skipsFinalImageReload: Bool = false,
     content: Content
   ) {
     self.init(
       imageRepresentation: .remote(multiplexImage),
       downloader: downloader,
       clearsContentBeforeDownload: clearsContentBeforeDownload,
+      skipsFinalImageReload: skipsFinalImageReload,
       content: content
     )
   }
-  
+
+  /// Creates an async multiplex image view with an image representation.
+  ///
+  /// - Parameters:
+  ///   - imageRepresentation: The image representation to display (either remote or pre-loaded).
+  ///   - downloader: The downloader actor to use for fetching images.
+  ///   - clearsContentBeforeDownload: Whether to clear the content before starting a new download. Defaults to `true`.
+  ///   - skipsFinalImageReload: Whether to skip reloading when a final image is already loaded for the same representation. When `false` (default), images reload when display size or representation changes. Defaults to `false`.
+  ///   - content: A closure that builds the view content based on the current loading phase.
   public init(
     imageRepresentation: ImageRepresentation,
     downloader: Downloader,
     clearsContentBeforeDownload: Bool = true,
+    skipsFinalImageReload: Bool = false,
     content: Content
   ) {
-    
+
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
+    self.skipsFinalImageReload = skipsFinalImageReload
     self.imageRepresentation = imageRepresentation
     self.downloader = downloader
     self.content = content
-    
+
   }
   
   public var body: some View {
     _AsyncMultiplexImage(
       clearsContentBeforeDownload: clearsContentBeforeDownload,
+      skipsFinalImageReload: skipsFinalImageReload,
       imageRepresentation: imageRepresentation,
       downloader: downloader,
       content: content
@@ -188,22 +209,25 @@ private struct _AsyncMultiplexImage<
   
   @State private var item: ResultContainer.ItemSwiftUI?
   
-  @State private var displaySize: CGSize = .zero  
+  @State private var displaySize: CGSize = .zero
   @Environment(\.displayScale) var displayScale
-  
+
   private let imageRepresentation: ImageRepresentation
   private let downloader: Downloader
   private let content: Content
   private let clearsContentBeforeDownload: Bool
+  private let skipsFinalImageReload: Bool
   
   public init(
     clearsContentBeforeDownload: Bool,
+    skipsFinalImageReload: Bool,
     imageRepresentation: ImageRepresentation,
     downloader: Downloader,
     content: Content
   ) {
-    
+
     self.clearsContentBeforeDownload = clearsContentBeforeDownload
+    self.skipsFinalImageReload = skipsFinalImageReload
     self.imageRepresentation = imageRepresentation
     self.downloader = downloader
     self.content = content
@@ -245,14 +269,16 @@ private struct _AsyncMultiplexImage<
           image: imageRepresentation
         ),
         {
-          
-          if let item,
-             case .final = item.phase,
-             item.representation == imageRepresentation {
-            // already final item loaded
-            return
+
+          if skipsFinalImageReload {
+            if let item,
+               case .final = item.phase,
+               item.representation == imageRepresentation {
+              // already final item loaded
+              return
+            }
           }
-          
+
           await withTaskCancellationHandler { 
             
             let newSize = displaySize
