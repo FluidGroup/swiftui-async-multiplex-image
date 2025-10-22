@@ -130,8 +130,8 @@ public enum ImageRepresentation: Equatable {
 public struct AsyncMultiplexImage<
   Content: AsyncMultiplexImageContent, Downloader: AsyncMultiplexImageDownloader
 >: View {
-  
-  private let imageRepresentation: ImageRepresentation
+
+  private let imageRepresentation: ImageRepresentation?
   private let downloader: Downloader
   private let content: Content
 
@@ -165,13 +165,13 @@ public struct AsyncMultiplexImage<
   /// Creates an async multiplex image view with an image representation.
   ///
   /// - Parameters:
-  ///   - imageRepresentation: The image representation to display (either remote or pre-loaded).
+  ///   - imageRepresentation: The image representation to display (either remote or pre-loaded). If nil, displays empty/placeholder state.
   ///   - downloader: The downloader actor to use for fetching images.
   ///   - clearsContentBeforeDownload: Whether to clear the content before starting a new download. Defaults to `true`.
   ///   - skipsFinalImageReload: Whether to skip reloading when a final image is already loaded for the same representation. When `false` (default), images reload when display size or representation changes. Defaults to `false`.
   ///   - content: A closure that builds the view content based on the current loading phase.
   public init(
-    imageRepresentation: ImageRepresentation,
+    imageRepresentation: ImageRepresentation?,
     downloader: Downloader,
     clearsContentBeforeDownload: Bool = true,
     skipsFinalImageReload: Bool = false,
@@ -201,18 +201,18 @@ public struct AsyncMultiplexImage<
 private struct _AsyncMultiplexImage<
   Content: AsyncMultiplexImageContent, Downloader: AsyncMultiplexImageDownloader
 >: View {
-  
+
   private struct UpdateTrigger: Equatable {
     let size: CGSize
-    let image: ImageRepresentation
+    let image: ImageRepresentation?
   }
-  
+
   @State private var item: ResultContainer.ItemSwiftUI?
-  
+
   @State private var displaySize: CGSize = .zero
   @Environment(\.displayScale) var displayScale
 
-  private let imageRepresentation: ImageRepresentation
+  private let imageRepresentation: ImageRepresentation?
   private let downloader: Downloader
   private let content: Content
   private let clearsContentBeforeDownload: Bool
@@ -221,7 +221,7 @@ private struct _AsyncMultiplexImage<
   public init(
     clearsContentBeforeDownload: Bool,
     skipsFinalImageReload: Bool,
-    imageRepresentation: ImageRepresentation,
+    imageRepresentation: ImageRepresentation?,
     downloader: Downloader,
     content: Content
   ) {
@@ -270,6 +270,16 @@ private struct _AsyncMultiplexImage<
         ),
         {
 
+          // Handle nil imageRepresentation (placeholder state)
+          guard let imageRepresentation else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+              self.item = nil
+            }
+            return
+          }
+
           if skipsFinalImageReload {
             if let item,
                case .final = item.phase,
@@ -279,14 +289,14 @@ private struct _AsyncMultiplexImage<
             }
           }
 
-          await withTaskCancellationHandler { 
-            
+          await withTaskCancellationHandler {
+
             let newSize = displaySize
-            
+
             guard newSize.height > 0 && newSize.width > 0 else {
               return
             }
-            
+
             if clearsContentBeforeDownload {
               var transaction = Transaction()
               transaction.disablesAnimations = true
@@ -294,7 +304,7 @@ private struct _AsyncMultiplexImage<
                 self.item = nil
               }
             }
-            
+
             switch imageRepresentation {
             case .remote(let multiplexImage):
               

@@ -96,6 +96,10 @@ struct ContentView: View {
           NavigationLink("Shrink", destination: {
             BookShrink()
           })
+
+          NavigationLink("Optional Image", destination: {
+            OptionalImageDemo()
+          })
         }
         .navigationTitle("Multiplex Image")
       }
