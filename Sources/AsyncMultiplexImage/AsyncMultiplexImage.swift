@@ -265,7 +265,10 @@ private struct _AsyncMultiplexImage<
       )
       .task(
         id: UpdateTrigger(
-          size: displaySize,
+          size: .init(
+            width: displaySize.width.rounded(),
+            height: displaySize.height.rounded(),
+          ),
           image: imageRepresentation
         ),
         {
