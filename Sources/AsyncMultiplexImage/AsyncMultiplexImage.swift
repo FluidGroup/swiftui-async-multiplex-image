@@ -203,7 +203,7 @@ private struct _AsyncMultiplexImage<
 >: View {
 
   private struct UpdateTrigger: Equatable {
-    let size: CGSize
+    let pixelSize: CGSize
     let image: ImageRepresentation?
   }
 
@@ -265,9 +265,9 @@ private struct _AsyncMultiplexImage<
       )
       .task(
         id: UpdateTrigger(
-          size: .init(
-            width: displaySize.width.rounded(),
-            height: displaySize.height.rounded(),
+          pixelSize: .init(
+            width: (displaySize.width * displayScale).rounded(),
+            height: (displaySize.height * displayScale).rounded(),
           ),
           image: imageRepresentation
         ),
