@@ -31,15 +31,6 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
 
     var request = ImageRequest(
       urlRequest: candidate.urlRequest,
-      processors: [
-        ImageProcessors.Resize(
-          size: displaySize,
-          unit: .points,
-          contentMode: .aspectFill,
-          crop: true,
-          upscale: false
-        )
-      ]
     )
 
     // Decode only the pixels needed to fill the view. The resize processor is
