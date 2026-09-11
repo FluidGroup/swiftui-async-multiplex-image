@@ -29,19 +29,19 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
 
     #endif
 
-    let task = pipeline.imageTask(with: .init(
-        urlRequest: candidate.urlRequest,
-        processors: [
-          ImageProcessors.Resize(
-            size: displaySize,
-            unit: .points,
-            contentMode: .aspectFill,
-            crop: true,
-            upscale: false
-          )
-        ]
-      )
+    var request = ImageRequest(
+      urlRequest: candidate.urlRequest,
     )
+
+    // Decode only the pixels needed to fill the view. The resize processor is
+    // still needed to perform the final aspect-fill crop.
+    request.thumbnail = .init(
+      size: displaySize,
+      unit: .points,
+      contentMode: .aspectFill
+    )
+
+    let task = pipeline.imageTask(with: request)
     
     let begin = CACurrentMediaTime()
         
@@ -62,7 +62,7 @@ public actor AsyncMultiplexImageNukeDownloader: AsyncMultiplexImageDownloader {
     
     return .init(
       image: result.image,
-      isFromCache: false,
+      isFromCache: isFromCache,
       time: took
     )
         
